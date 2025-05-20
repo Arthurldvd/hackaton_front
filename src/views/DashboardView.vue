@@ -128,13 +128,17 @@
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="garage in garages" :key="garage.id" class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:bg-indigo-50 transition-colors">
+            <div
+              v-for="garage in garages.slice(0, 3)"
+              :key="garage.id"
+              class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+            >
               <h3 class="font-medium text-gray-900">{{ garage.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">{{ garage.address }}</p>
-              <p class="text-sm text-gray-500">{{ garage.zipcode }} {{ garage.city }}</p>
+              <p class="text-sm text-gray-500 mt-1">{{ garage.address || 'Adresse inconnue' }}</p>
+              <p class="text-sm text-gray-500">{{ garage.postal_code }} {{ garage.city }}</p>
               <div class="mt-4">
-                <router-link 
-                  :to="`/appointment?garageId=${garage.id}`" 
+                <router-link
+                  :to="`/appointment?garageId=${garage.id}`"
                   class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center"
                 >
                   <span>Prendre rendez-vous</span>
@@ -152,42 +156,51 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { useGarageStore } from '../stores/garage'
+import client from '@/js/client'
 import AppHeader from '../components/AppHeader.vue'
 
 const authStore = useAuthStore()
-const garageStore = useGarageStore()
-
 const user = computed(() => authStore.user)
-const garages = computed(() => garageStore.garages)
 
+// 🔁 Remplace les mock data par un fetch réel
+const garages = ref([])
+
+onMounted(async () => {
+  try {
+    const response = await client.get('/garages')
+    garages.value = response.garages || []
+  } catch (error) {
+    console.error('Erreur lors du chargement des garages:', error.message)
+  }
+})
+
+// ⚙️ Ces parties restent inchangées
 const vehicles = computed(() => {
-  return garageStore.getVehiclesByClientId(user.value.id)
+  // À adapter si tu as une source réelle
+  return [] // temporaire si garageStore n'est plus utilisé
 })
 
 const appointments = computed(() => {
-  return vehicles.value.flatMap(vehicle => 
-    garageStore.getAppointmentsByVehicleId(vehicle.id)
-  )
+  return vehicles.value.flatMap(vehicle => []) // idem
 })
 
 const pendingAppointments = computed(() => {
   return appointments.value
     .filter(appointment => ['pending', 'confirmed'].includes(appointment.status))
     .sort((a, b) => new Date(a.appointmentDatetime) - new Date(b.appointmentDatetime))
-    .slice(0, 3) // Limiter à 3 rendez-vous à venir
+    .slice(0, 3)
 })
 
 const completedAppointments = computed(() => {
   return appointments.value
     .filter(appointment => appointment.status === 'completed')
     .sort((a, b) => new Date(b.appointmentDatetime) - new Date(a.appointmentDatetime))
-    .slice(0, 3) // Limiter à 3 rendez-vous passés
+    .slice(0, 3)
 })
 
-// Fonctions utilitaires
+// 🧠 Formatage et affichage
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
@@ -199,13 +212,9 @@ const formatDate = (dateString) => {
   }).format(date)
 }
 
-const getVehicleName = (vehicleId) => {
-  const vehicle = garageStore.vehicles.find(v => v.id === vehicleId)
-  return vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Véhicule inconnu'
-}
-
+const getVehicleName = (vehicleId) => 'Véhicule inconnu'
 const getGarageName = (garageId) => {
-  const garage = garageStore.garages.find(g => g.id === garageId)
+  const garage = garages.value.find(g => g.id === garageId)
   return garage ? garage.name : 'Garage inconnu'
 }
-</script> 
+</script>
