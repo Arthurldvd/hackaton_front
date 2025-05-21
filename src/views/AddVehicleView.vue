@@ -95,7 +95,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useGarageStore } from '../stores/garage'
 
-// Composants
 import PageLayout from '../components/PageLayout.vue'
 import FormInput from '../components/FormInput.vue'
 import FormError from '../components/FormError.vue'
@@ -149,7 +148,6 @@ const validateForm = () => {
     return false
   }
   
-  // Vérifier si la plaque d'immatriculation existe déjà
   const existingVehicle = garageStore.vehicles.find(
     v => v.licensePlate.toLowerCase() === form.value.licensePlate.toLowerCase()
   )
@@ -159,7 +157,6 @@ const validateForm = () => {
     return false
   }
   
-  // Vérifier si le VIN existe déjà
   const existingVin = garageStore.vehicles.find(
     v => v.vin.toLowerCase() === form.value.vin.toLowerCase()
   )
@@ -182,16 +179,13 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     
-    // Simuler un délai de réseau
     await new Promise(resolve => setTimeout(resolve, 800))
     
-    // Ajouter le véhicule
     const newVehicle = garageStore.addVehicle({
       ...form.value,
       clientId: authStore.user.id
     })
     
-    // Rediriger vers la liste des véhicules
     router.push('/vehicles')
   } catch (error) {
     formError.value = error.message || 'Une erreur est survenue lors de l\'enregistrement du véhicule'

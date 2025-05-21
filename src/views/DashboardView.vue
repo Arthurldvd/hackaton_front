@@ -3,7 +3,6 @@
     <p class="mt-2 text-gray-600">Bienvenue, {{ user.firstName }} {{ user.lastName }}</p>
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-      <!-- Carte Véhicules -->
       <DashboardCard title="Vos véhicules" color="indigo">
         <template #badge>
           <CountBadge :count="vehicles.length" color="indigo" />
@@ -35,7 +34,6 @@
         </template>
       </DashboardCard>
       
-      <!-- Carte Rendez-vous -->
       <DashboardCard title="Rendez-vous à venir" color="green">
         <template #badge>
           <CountBadge :count="pendingAppointments.length" color="green" />
@@ -68,7 +66,6 @@
         </template>
       </DashboardCard>
       
-      <!-- Carte Historique -->
       <DashboardCard title="Historique" color="gray">
         <ul v-if="completedAppointments.length > 0" class="divide-y divide-gray-200">
           <DashboardListItem 
@@ -96,7 +93,6 @@
       </DashboardCard>
     </div>
     
-    <!-- Garages à proximité -->
     <InfoSection title="Garages à proximité">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <GarageCard
@@ -127,7 +123,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import client from '@/js/client'
 
-// Composants
 import PageLayout from '../components/PageLayout.vue'
 import DashboardCard from '../components/DashboardCard.vue'
 import CountBadge from '../components/CountBadge.vue'
@@ -140,7 +135,6 @@ import GarageCard from '../components/GarageCard.vue'
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 
-// 🔁 Remplace les mock data par un fetch réel
 const garages = ref([])
 
 onMounted(async () => {
@@ -152,14 +146,12 @@ onMounted(async () => {
   }
 })
 
-// ⚙️ Ces parties restent inchangées
 const vehicles = computed(() => {
-  // À adapter si tu as une source réelle
-  return [] // temporaire si garageStore n'est plus utilisé
+  return []
 })
 
 const appointments = computed(() => {
-  return vehicles.value.flatMap(vehicle => []) // idem
+  return vehicles.value.flatMap(vehicle => [])
 })
 
 const pendingAppointments = computed(() => {
@@ -176,7 +168,6 @@ const completedAppointments = computed(() => {
     .slice(0, 3)
 })
 
-// 🧠 Formatage et affichage
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {

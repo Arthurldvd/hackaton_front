@@ -10,7 +10,6 @@ import ActionButton from '../components/ActionButton.vue';
 
 <template>
   <main class="min-h-screen">
-    <!-- Hero Section -->
     <HeroSection
       title="Entretenez votre véhicule simplement"
       description="Prenez rendez-vous avec un garage en quelques clics et suivez l'entretien de vos véhicules facilement."
@@ -27,7 +26,6 @@ import ActionButton from '../components/ActionButton.vue';
       </template>
     </HeroSection>
 
-    <!-- Features Section -->
     <section class="py-16 md:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionTitle 
@@ -72,7 +70,6 @@ import ActionButton from '../components/ActionButton.vue';
       </div>
     </section>
 
-    <!-- How it works -->
     <section class="py-16 md:py-24 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionTitle 
@@ -108,7 +105,6 @@ import ActionButton from '../components/ActionButton.vue';
       </div>
     </section>
 
-    <!-- CTA Section -->
     <CTASection
       title="Prêt à simplifier l'entretien de votre véhicule ?"
       description="Rejoignez des milliers d'utilisateurs qui font confiance à Car Appointment pour la gestion de leurs véhicules."
@@ -118,7 +114,6 @@ import ActionButton from '../components/ActionButton.vue';
       </router-link>
     </CTASection>
 
-    <!-- Footer -->
     <SiteFooter
       title="Car Appointment"
       tagline="La plateforme simple pour l'entretien de vos véhicules"

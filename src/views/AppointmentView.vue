@@ -1,6 +1,5 @@
 <template>
   <PageLayout title="Prendre rendez-vous">
-    <!-- Indicateur de progression -->
     <div class="mb-8">
       <StepProgressBar :steps="steps" :current-step="currentStep" />
     </div>
@@ -8,7 +7,6 @@
     <FormError :message="errorMessage" />
 
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-      <!-- Étape 1 : Sélection du véhicule -->
       <div v-if="currentStep === 0" class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-6">Sélectionner un véhicule</h2>
 
@@ -59,7 +57,6 @@
         />
       </div>
 
-      <!-- Étape 2 : Sélection du garage -->
       <div v-if="currentStep === 1" class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-6">Sélectionner un garage</h2>
 
@@ -88,7 +85,6 @@
         />
       </div>
 
-      <!-- Étape 3 : Sélection des opérations -->
       <div v-if="currentStep === 2" class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-6">Sélectionner les opérations</h2>
 
@@ -133,7 +129,6 @@
         />
       </div>
 
-      <!-- Étape 4 : Sélection de la date et du créneau -->
       <div v-if="currentStep === 3" class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-6">Sélectionner une date et un créneau</h2>
 
@@ -214,7 +209,6 @@ import { useAuthStore } from '../stores/auth'
 import { useGarageStore } from '../stores/garage'
 import client from '@/js/client'
 
-// Composants
 import PageLayout from '../components/PageLayout.vue'
 import StepProgressBar from '../components/StepProgressBar.vue'
 import FormError from '../components/FormError.vue'
@@ -237,7 +231,7 @@ const garageStore = useGarageStore()
 
 const garages = ref([])
 const operationCategories = ref([])
-const operationCache = ref({}) // id -> opération
+const operationCache = ref({}) 
 
 const steps = [
   { id: 'step-1', name: 'Véhicule' },

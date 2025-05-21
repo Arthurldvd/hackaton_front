@@ -34,7 +34,6 @@
         />
       </div>
       
-      <!-- Informations principales -->
       <InfoSection 
         title="Informations générales" 
         description="Détails du rendez-vous"
@@ -66,7 +65,6 @@
         </DetailItem>
       </InfoSection>
       
-      <!-- Opérations -->
       <InfoSection 
         title="Opérations prévues" 
         description="Liste des interventions à effectuer"
@@ -96,7 +94,6 @@
         </ul>
       </InfoSection>
       
-      <!-- Actions -->
       <InfoSection title="Actions">
         <div class="px-4 py-5 sm:px-6">
           <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0">
@@ -133,7 +130,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGarageStore } from '../stores/garage'
 
-// Composants
 import PageLayout from '../components/PageLayout.vue'
 import InfoSection from '../components/InfoSection.vue'
 import DetailItem from '../components/DetailItem.vue'
@@ -165,7 +161,6 @@ const garage = computed(() => {
   return garageStore.garages.find(g => g.id === appointment.value.garageId)
 })
 
-// Fonctions utilitaires
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
@@ -211,10 +206,8 @@ const cancelAppointment = async () => {
   try {
     isUpdating.value = true
     
-    // Simuler un délai de réseau
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    // Mettre à jour le statut du rendez-vous
     garageStore.updateAppointmentStatus(appointmentId, 'cancelled')
     
   } catch (error) {

@@ -8,7 +8,6 @@
               Car Appointment
             </router-link>
           </div>
-          <!-- Navigation sur ordinateur -->
           <nav class="hidden md:ml-8 md:flex md:space-x-4">
             <router-link 
               to="/dashboard" 
@@ -39,7 +38,6 @@
           </nav>
         </div>
         
-        <!-- Bouton burger pour mobile -->
         <div class="flex items-center md:hidden">
           <button 
             @click="isMobileMenuOpen = !isMobileMenuOpen" 
@@ -49,7 +47,6 @@
             :aria-expanded="isMobileMenuOpen"
           >
             <span class="sr-only">Ouvrir le menu principal</span>
-            <!-- Icône menu (quand fermé) -->
             <svg 
               v-if="!isMobileMenuOpen" 
               class="block h-6 w-6" 
@@ -61,7 +58,6 @@
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <!-- Icône X (quand ouvert) -->
             <svg 
               v-else 
               class="block h-6 w-6" 
@@ -119,7 +115,6 @@
       </div>
     </div>
     
-    <!-- Menu mobile -->
     <div v-if="isMobileMenuOpen" class="md:hidden" id="mobile-menu">
       <div class="pt-2 pb-3 space-y-1 border-t border-gray-200">
         <router-link 
@@ -156,7 +151,6 @@
         </router-link>
       </div>
       
-      <!-- Menu utilisateur mobile -->
       <div class="pt-4 pb-3 border-t border-gray-200">
         <div class="flex items-center px-4">
           <div class="flex-shrink-0">

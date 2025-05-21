@@ -11,7 +11,6 @@
       </router-link>
     </template>
     
-    <!-- Filtres -->
     <FilterBar>
       <StatusSelect 
         v-model="statusFilter"
@@ -29,7 +28,6 @@
       </ActionButton>
     </FilterBar>
     
-    <!-- Liste vide -->
     <EmptyState 
       v-if="filteredAppointments.length === 0"
       title="Aucun rendez-vous"
@@ -47,7 +45,6 @@
       </template>
     </EmptyState>
     
-    <!-- Liste des rendez-vous -->
     <div v-else class="bg-white shadow overflow-hidden sm:rounded-lg">
       <ul role="list" class="divide-y divide-gray-200">
         <AppointmentItem 
@@ -79,7 +76,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useGarageStore } from '../stores/garage'
 
-// Composants
 import PageLayout from '../components/PageLayout.vue'
 import ActionButton from '../components/ActionButton.vue'
 import FilterBar from '../components/FilterBar.vue'
@@ -93,7 +89,6 @@ const garageStore = useGarageStore()
 const isLoading = ref(false)
 const statusFilter = ref('all')
 
-// Options pour le sélecteur de statut
 const statusOptions = [
   { value: 'all', label: 'Tous' },
   { value: 'pending', label: 'En attente' },
@@ -102,17 +97,14 @@ const statusOptions = [
   { value: 'cancelled', label: 'Annulés' }
 ]
 
-// Récupération de tous les rendez-vous de tous les véhicules de l'utilisateur
 const appointments = computed(() => {
   const userVehicles = garageStore.getVehiclesByClientId(authStore.user.id)
   
-  // Récupérer tous les rendez-vous pour ces véhicules
   return userVehicles.flatMap(vehicle => 
     garageStore.getAppointmentsByVehicleId(vehicle.id)
   )
 })
 
-// Filtrer les rendez-vous par statut
 const filteredAppointments = computed(() => {
   if (statusFilter.value === 'all') {
     return appointments.value.sort((a, b) => new Date(b.appointmentDatetime) - new Date(a.appointmentDatetime))
@@ -123,7 +115,6 @@ const filteredAppointments = computed(() => {
     .sort((a, b) => new Date(b.appointmentDatetime) - new Date(a.appointmentDatetime))
 })
 
-// Fonctions utilitaires
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
@@ -198,8 +189,6 @@ const getStatusClasses = (status) => {
 }
 
 const loadAppointments = () => {
-  // Cette fonction est un placeholder pour simuler une actualisation
-  // Dans une vraie application, elle appellerait une API
   isLoading.value = true
   
   setTimeout(() => {

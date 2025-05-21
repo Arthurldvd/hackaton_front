@@ -2,9 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 
-// Données mock pour le développement
 export const useGarageStore = defineStore('garage', () => {
-  // État
   const vehicles = ref([
     {
       id: '1',
@@ -84,7 +82,7 @@ export const useGarageStore = defineStore('garage', () => {
       name: 'Vidange + filtres',
       additionalHelp: 'Inclut vidange huile, remplacement filtre huile et filtre habitacle',
       additionalComment: 'Recommandé tous les 15 000 km ou 1 an',
-      timeUnit: 60, // minutes
+      timeUnit: 60, 
       price: 129.99
     },
     {
@@ -154,7 +152,6 @@ export const useGarageStore = defineStore('garage', () => {
     }
   ])
   
-  // Getters
   const getVehiclesByClientId = computed(() => {
     return (clientId) => vehicles.value.filter(vehicle => vehicle.clientId === clientId)
   })
@@ -177,7 +174,6 @@ export const useGarageStore = defineStore('garage', () => {
     }
   })
   
-  // Actions
   const addVehicle = (vehicleData) => {
     const newVehicle = {
       id: uuidv4(),
@@ -197,7 +193,6 @@ export const useGarageStore = defineStore('garage', () => {
   }
   
   const createAppointment = (appointmentData, operationIds) => {
-    // Créer le rendez-vous
     const newAppointment = {
       id: uuidv4(),
       ...appointmentData,
@@ -208,7 +203,6 @@ export const useGarageStore = defineStore('garage', () => {
     
     appointments.value.push(newAppointment)
     
-    // Associer les opérations au rendez-vous
     operationIds.forEach(operationId => {
       appointmentOperations.value.push({
         appointmentId: newAppointment.id,
@@ -229,27 +223,21 @@ export const useGarageStore = defineStore('garage', () => {
     return null
   }
   
-  // Fonction pour générer des créneaux disponibles
   const generateTimeSlots = (garageId, date, operations) => {
-    // Simuler des créneaux disponibles pour un garage à une date donnée
     const slots = []
     
-    // Calculer la durée totale nécessaire (en minutes)
     const totalDuration = operations.reduce((sum, opId) => {
       const operation = operations.value.find(op => op.id === opId)
       return sum + (operation ? operation.timeUnit : 0)
     }, 0)
     
-    // Heures d'ouverture du garage (8h-18h)
     const openingHour = 8
     const closingHour = 18
     
-    // Générer des créneaux avec un intervalle de 30 minutes
     const selectedDate = new Date(date)
     
     for (let hour = openingHour; hour < closingHour; hour++) {
       for (let minutes = 0; minutes < 60; minutes += 30) {
-        // Vérifier si l'heure de fin ne dépasse pas l'heure de fermeture
         const startTime = new Date(selectedDate)
         startTime.setHours(hour, minutes, 0)
         
@@ -259,8 +247,7 @@ export const useGarageStore = defineStore('garage', () => {
         if (endTime.getHours() < closingHour || 
             (endTime.getHours() === closingHour && endTime.getMinutes() === 0)) {
           
-          // Vérifier si le créneau est déjà pris (simulation)
-          const isAvailable = Math.random() > 0.3 // 70% de chance d'être disponible
+          const isAvailable = Math.random() > 0.3 
           
           if (isAvailable) {
             slots.push({
@@ -277,7 +264,6 @@ export const useGarageStore = defineStore('garage', () => {
   }
   
   return {
-    // État
     vehicles,
     garages,
     operationCategories,
@@ -285,13 +271,11 @@ export const useGarageStore = defineStore('garage', () => {
     appointments,
     appointmentOperations,
     
-    // Getters
     getVehiclesByClientId,
     getOperationsByCategory,
     getAppointmentsByVehicleId,
     getOperationsByAppointmentId,
     
-    // Actions
     addVehicle,
     updateVehicle,
     createAppointment,

@@ -4,7 +4,6 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import { useAuthStore } from '../stores/auth'
 
-// Routes protégées - nécessitent une authentification
 const requireAuth = (to, from, next) => {
   const authStore = useAuthStore()
   
@@ -15,7 +14,6 @@ const requireAuth = (to, from, next) => {
   }
 }
 
-// Routes accessibles uniquement si non authentifié
 const requireNoAuth = (to, from, next) => {
   const authStore = useAuthStore()
   
