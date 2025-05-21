@@ -1,165 +1,141 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <AppHeader />
+  <PageLayout title="Tableau de bord">
+    <p class="mt-2 text-gray-600">Bienvenue, {{ user.firstName }} {{ user.lastName }}</p>
     
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div class="mb-8">
-        <h1 class="text-2xl font-semibold text-gray-900">Tableau de bord</h1>
-        <p class="mt-2 text-gray-600">Bienvenue, {{ user.firstName }} {{ user.lastName }}</p>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Carte Véhicules -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-          <div class="px-6 py-5 border-b border-gray-200 bg-indigo-50">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-indigo-800">Vos véhicules</h2>
-              <span class="bg-indigo-100 text-indigo-800 py-1 px-3 rounded-full text-sm font-medium">
-                {{ vehicles.length }}
-              </span>
-            </div>
-          </div>
-          <div class="p-6">
-            <ul v-if="vehicles.length > 0" class="divide-y divide-gray-200">
-              <li v-for="vehicle in vehicles" :key="vehicle.id" class="py-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="font-medium text-gray-900">{{ vehicle.brand }} {{ vehicle.model }}</p>
-                    <p class="text-sm text-gray-500">{{ vehicle.licensePlate }}</p>
-                  </div>
-                  <router-link :to="`/vehicles/${vehicle.id}`" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                    Détails
-                  </router-link>
-                </div>
-              </li>
-            </ul>
-            <div v-else class="text-center py-4">
-              <p class="text-gray-500">Aucun véhicule enregistré</p>
-            </div>
-            <div class="mt-4">
-              <router-link to="/vehicles/add" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Ajouter un véhicule
-              </router-link>
-            </div>
-          </div>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Carte Véhicules -->
+      <DashboardCard title="Vos véhicules" color="indigo">
+        <template #badge>
+          <CountBadge :count="vehicles.length" color="indigo" />
+        </template>
         
-        <!-- Carte Rendez-vous -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-          <div class="px-6 py-5 border-b border-gray-200 bg-green-50">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-green-800">Rendez-vous à venir</h2>
-              <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm font-medium">
-                {{ pendingAppointments.length }}
-              </span>
-            </div>
-          </div>
-          <div class="p-6">
-            <ul v-if="pendingAppointments.length > 0" class="divide-y divide-gray-200">
-              <li v-for="appointment in pendingAppointments" :key="appointment.id" class="py-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="font-medium text-gray-900">{{ formatDate(appointment.appointmentDatetime) }}</p>
-                    <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicleId) }}</p>
-                    <p class="text-sm text-gray-500">{{ getGarageName(appointment.garageId) }}</p>
-                  </div>
-                  <router-link :to="`/appointments/${appointment.id}`" class="text-green-600 hover:text-green-900 text-sm font-medium">
-                    Détails
-                  </router-link>
-                </div>
-              </li>
-            </ul>
-            <div v-else class="text-center py-4">
-              <p class="text-gray-500">Aucun rendez-vous à venir</p>
-            </div>
-            <div class="mt-4">
-              <router-link to="/appointment" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Prendre rendez-vous
-              </router-link>
-            </div>
-          </div>
-        </div>
+        <ul v-if="vehicles.length > 0" class="divide-y divide-gray-200">
+          <DashboardListItem 
+            v-for="vehicle in vehicles" 
+            :key="vehicle.id"
+            :title="`${vehicle.brand} ${vehicle.model}`"
+            :link="`/vehicles/${vehicle.id}`"
+            color="indigo"
+          >
+            <p class="text-sm text-gray-500">{{ vehicle.licensePlate }}</p>
+          </DashboardListItem>
+        </ul>
         
-        <!-- Carte Historique -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-          <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-800">Historique</h2>
-          </div>
-          <div class="p-6">
-            <ul v-if="completedAppointments.length > 0" class="divide-y divide-gray-200">
-              <li v-for="appointment in completedAppointments" :key="appointment.id" class="py-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="font-medium text-gray-900">{{ formatDate(appointment.appointmentDatetime) }}</p>
-                    <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicleId) }}</p>
-                    <p class="text-sm text-gray-500">{{ getGarageName(appointment.garageId) }}</p>
-                  </div>
-                  <router-link :to="`/appointments/${appointment.id}`" class="text-gray-600 hover:text-gray-900 text-sm font-medium">
-                    Détails
-                  </router-link>
-                </div>
-              </li>
-            </ul>
-            <div v-else class="text-center py-4">
-              <p class="text-gray-500">Aucun rendez-vous passé</p>
-            </div>
-            <div class="mt-4">
-              <router-link to="/appointments" class="text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center">
-                <span>Voir tout l'historique</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </div>
+        <EmptyState v-else message="Aucun véhicule enregistré" simple />
+        
+        <template #footer>
+          <router-link to="/vehicles/add">
+            <ActionButton>
+              <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Ajouter un véhicule
+            </ActionButton>
+          </router-link>
+        </template>
+      </DashboardCard>
       
-      <!-- Garages à proximité -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div class="px-6 py-5 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-800">Garages à proximité</h2>
-        </div>
-        <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div
-              v-for="garage in garages.slice(0, 3)"
-              :key="garage.id"
-              class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
-            >
-              <h3 class="font-medium text-gray-900">{{ garage.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">{{ garage.address || 'Adresse inconnue' }}</p>
-              <p class="text-sm text-gray-500">{{ garage.postal_code }} {{ garage.city }}</p>
-              <div class="mt-4">
-                <router-link
-                  :to="`/appointment?garageId=${garage.id}`"
-                  class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center"
-                >
-                  <span>Prendre rendez-vous</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </router-link>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Carte Rendez-vous -->
+      <DashboardCard title="Rendez-vous à venir" color="green">
+        <template #badge>
+          <CountBadge :count="pendingAppointments.length" color="green" />
+        </template>
+        
+        <ul v-if="pendingAppointments.length > 0" class="divide-y divide-gray-200">
+          <DashboardListItem 
+            v-for="appointment in pendingAppointments" 
+            :key="appointment.id"
+            :title="formatDate(appointment.appointmentDatetime)"
+            :link="`/appointments/${appointment.id}`"
+            color="green"
+          >
+            <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicleId) }}</p>
+            <p class="text-sm text-gray-500">{{ getGarageName(appointment.garageId) }}</p>
+          </DashboardListItem>
+        </ul>
+        
+        <EmptyState v-else message="Aucun rendez-vous à venir" simple />
+        
+        <template #footer>
+          <router-link to="/appointment">
+            <ActionButton color="green">
+              <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Prendre rendez-vous
+            </ActionButton>
+          </router-link>
+        </template>
+      </DashboardCard>
+      
+      <!-- Carte Historique -->
+      <DashboardCard title="Historique" color="gray">
+        <ul v-if="completedAppointments.length > 0" class="divide-y divide-gray-200">
+          <DashboardListItem 
+            v-for="appointment in completedAppointments" 
+            :key="appointment.id"
+            :title="formatDate(appointment.appointmentDatetime)"
+            :link="`/appointments/${appointment.id}`"
+            color="gray"
+          >
+            <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicleId) }}</p>
+            <p class="text-sm text-gray-500">{{ getGarageName(appointment.garageId) }}</p>
+          </DashboardListItem>
+        </ul>
+        
+        <EmptyState v-else message="Aucun rendez-vous passé" simple />
+        
+        <template #footer>
+          <router-link to="/appointments" class="text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center">
+            <span>Voir tout l'historique</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </template>
+      </DashboardCard>
+    </div>
+    
+    <!-- Garages à proximité -->
+    <InfoSection title="Garages à proximité">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <GarageCard
+          v-for="garage in garages.slice(0, 3)"
+          :key="garage.id"
+          :name="garage.name"
+          :address="garage.address"
+          :city="garage.city"
+          :postal-code="garage.postal_code"
+        >
+          <router-link
+            :to="`/appointment?garageId=${garage.id}`"
+            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center"
+          >
+            <span>Prendre rendez-vous</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </GarageCard>
       </div>
-    </main>
-  </div>
+    </InfoSection>
+  </PageLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import client from '@/js/client'
-import AppHeader from '../components/AppHeader.vue'
+
+// Composants
+import PageLayout from '../components/PageLayout.vue'
+import DashboardCard from '../components/DashboardCard.vue'
+import CountBadge from '../components/CountBadge.vue'
+import DashboardListItem from '../components/DashboardListItem.vue'
+import EmptyState from '../components/EmptyState.vue'
+import ActionButton from '../components/ActionButton.vue'
+import InfoSection from '../components/InfoSection.vue'
+import GarageCard from '../components/GarageCard.vue'
 
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)

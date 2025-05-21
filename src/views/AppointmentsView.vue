@@ -1,145 +1,106 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <AppHeader />
-    
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 class="text-2xl font-semibold text-gray-900">Mes rendez-vous</h1>
-        <router-link 
-          to="/appointment" 
-          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto justify-center"
-        >
+  <PageLayout title="Mes rendez-vous">
+    <template #header-actions>
+      <router-link to="/appointment">
+        <ActionButton>
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           Prendre rendez-vous
-        </router-link>
-      </div>
+        </ActionButton>
+      </router-link>
+    </template>
+    
+    <!-- Filtres -->
+    <FilterBar>
+      <StatusSelect 
+        v-model="statusFilter"
+        :options="statusOptions"
+      />
       
-      <!-- Filtres -->
-      <div class="mb-6 bg-white p-4 shadow rounded-lg">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="w-full sm:w-auto">
-            <div class="flex rounded-md shadow-sm">
-              <span class="inline-flex items-center px-3 py-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                Statut
-              </span>
-              <select 
-                v-model="statusFilter"
-                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300"
-              >
-                <option value="all">Tous</option>
-                <option value="pending">En attente</option>
-                <option value="confirmed">Confirmés</option>
-                <option value="completed">Terminés</option>
-                <option value="cancelled">Annulés</option>
-              </select>
-            </div>
-          </div>
-          <div class="w-full sm:w-auto">
-            <button 
-              type="button" 
-              @click="loadAppointments"
-              class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Actualiser
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Liste vide -->
-      <div v-if="filteredAppointments.length === 0" class="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      <ActionButton 
+        variant="secondary"
+        @click="loadAppointments"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun rendez-vous</h3>
-        <p class="mt-1 text-sm text-gray-500">
-          Prenez rendez-vous pour l'entretien ou la réparation de votre véhicule.
-        </p>
-        <div class="mt-6">
-          <router-link 
-            to="/appointment" 
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
+        Actualiser
+      </ActionButton>
+    </FilterBar>
+    
+    <!-- Liste vide -->
+    <EmptyState 
+      v-if="filteredAppointments.length === 0"
+      title="Aucun rendez-vous"
+      description="Prenez rendez-vous pour l'entretien ou la réparation de votre véhicule."
+    >
+      <template #action>
+        <router-link to="/appointment">
+          <ActionButton>
             <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Prendre rendez-vous
-          </router-link>
-        </div>
-      </div>
-      
-      <!-- Liste des rendez-vous -->
-      <div v-else class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <ul role="list" class="divide-y divide-gray-200">
-          <li v-for="appointment in filteredAppointments" :key="appointment.id" class="px-4 py-4 sm:px-6 sm:py-5 hover:bg-gray-50">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div class="flex-shrink-0">
-                <div :class="`h-12 w-12 rounded-full flex items-center justify-center ${getStatusClasses(appointment.status).bg}`">
-                  <svg class="h-6 w-6" :class="getStatusClasses(appointment.status).text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <p class="text-lg font-medium text-gray-900 truncate">
-                    {{ formatDate(appointment.appointmentDatetime) }}
-                  </p>
-                  <span :class="getStatusClasses(appointment.status).badge">
-                    {{ getStatusText(appointment.status) }}
-                  </span>
-                </div>
-                <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div class="flex items-center text-sm text-gray-500">
-                    <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
-                    {{ getGarageName(appointment.garageId) }}
-                  </div>
-                  <div class="flex items-center text-sm text-gray-500">
-                    <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path d="M12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
-                    {{ getVehicleName(appointment.vehicleId) }}
-                  </div>
-                </div>
-                <div class="mt-1 text-sm text-gray-500">
-                  {{ getOperationsSummary(appointment.id) }}
-                </div>
-              </div>
-              <div class="mt-3 sm:mt-0 w-full sm:w-auto">
-                <router-link 
-                  :to="`/appointments/${appointment.id}`" 
-                  class="inline-flex w-full sm:w-auto items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Détails
-                </router-link>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </main>
-  </div>
+          </ActionButton>
+        </router-link>
+      </template>
+    </EmptyState>
+    
+    <!-- Liste des rendez-vous -->
+    <div v-else class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <ul role="list" class="divide-y divide-gray-200">
+        <AppointmentItem 
+          v-for="appointment in filteredAppointments" 
+          :key="appointment.id"
+          :appointment="appointment"
+          :formatted-date="formatDate(appointment.appointmentDatetime)"
+          :garage-name="getGarageName(appointment.garageId)"
+          :vehicle-name="getVehicleName(appointment.vehicleId)"
+          :operations-summary="getOperationsSummary(appointment.id)"
+          :status-text="getStatusText(appointment.status)"
+          :status-classes="getStatusClasses(appointment.status)"
+        >
+          <template #actions>
+            <router-link :to="`/appointments/${appointment.id}`">
+              <ActionButton variant="secondary">
+                Détails
+              </ActionButton>
+            </router-link>
+          </template>
+        </AppointmentItem>
+      </ul>
+    </div>
+  </PageLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useGarageStore } from '../stores/garage'
-import AppHeader from '../components/AppHeader.vue'
+
+// Composants
+import PageLayout from '../components/PageLayout.vue'
+import ActionButton from '../components/ActionButton.vue'
+import FilterBar from '../components/FilterBar.vue'
+import StatusSelect from '../components/StatusSelect.vue'
+import EmptyState from '../components/EmptyState.vue'
+import AppointmentItem from '../components/AppointmentItem.vue'
 
 const authStore = useAuthStore()
 const garageStore = useGarageStore()
 
 const isLoading = ref(false)
 const statusFilter = ref('all')
+
+// Options pour le sélecteur de statut
+const statusOptions = [
+  { value: 'all', label: 'Tous' },
+  { value: 'pending', label: 'En attente' },
+  { value: 'confirmed', label: 'Confirmés' },
+  { value: 'completed', label: 'Terminés' },
+  { value: 'cancelled', label: 'Annulés' }
+]
 
 // Récupération de tous les rendez-vous de tous les véhicules de l'utilisateur
 const appointments = computed(() => {
