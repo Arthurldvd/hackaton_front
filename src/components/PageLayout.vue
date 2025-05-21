@@ -8,7 +8,7 @@
         <slot name="header-actions"></slot>
       </div>
       
-      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="overflow-hidden sm:rounded-lg">
         <slot></slot>
       </div>
     </main>
