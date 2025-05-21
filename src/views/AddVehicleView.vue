@@ -26,10 +26,10 @@
 
         <div class="sm:col-span-3">
           <FormInput 
-            v-model="form.licensePlate"
+            v-model="form.license_plate"
             label="Plaque d'immatriculation"
-            name="licensePlate"
-            id="licensePlate"
+            name="license_plate"
+            id="license_plate"
             required
             placeholder="AB-123-CD"
           />
@@ -48,10 +48,10 @@
 
         <div class="sm:col-span-3">
           <FormInput 
-            v-model="form.registrationDate"
+            v-model="form.registration_date"
             label="Date de première mise en circulation"
-            name="registrationDate"
-            id="registrationDate"
+            name="registration_date"
+            id="registration_date"
             type="date"
             required
           />
@@ -92,7 +92,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
 import { useGarageStore } from '../stores/garage'
 
 import PageLayout from '../components/PageLayout.vue'
@@ -102,15 +101,14 @@ import FormSection from '../components/FormSection.vue'
 import ActionButton from '../components/ActionButton.vue'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const garageStore = useGarageStore()
 
 const form = ref({
   brand: '',
   model: '',
-  licensePlate: '',
+  license_plate: '',
   vin: '',
-  registrationDate: '',
+  registration_date: '',
   mileage: 0
 })
 
@@ -128,7 +126,7 @@ const validateForm = () => {
     return false
   }
   
-  if (!form.value.licensePlate || !form.value.licensePlate.trim()) {
+  if (!form.value.license_plate || !form.value.license_plate.trim()) {
     formError.value = 'La plaque d\'immatriculation est requise'
     return false
   }
@@ -138,31 +136,13 @@ const validateForm = () => {
     return false
   }
   
-  if (!form.value.registrationDate) {
+  if (!form.value.registration_date) {
     formError.value = 'La date de première mise en circulation est requise'
     return false
   }
   
   if (form.value.mileage < 0) {
     formError.value = 'Le kilométrage ne peut pas être négatif'
-    return false
-  }
-  
-  const existingVehicle = garageStore.vehicles.find(
-    v => v.licensePlate.toLowerCase() === form.value.licensePlate.toLowerCase()
-  )
-  
-  if (existingVehicle) {
-    formError.value = 'Un véhicule avec cette plaque d\'immatriculation existe déjà'
-    return false
-  }
-  
-  const existingVin = garageStore.vehicles.find(
-    v => v.vin.toLowerCase() === form.value.vin.toLowerCase()
-  )
-  
-  if (existingVin) {
-    formError.value = 'Un véhicule avec ce numéro d\'identification (VIN) existe déjà'
     return false
   }
   
@@ -179,16 +159,17 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    const newVehicle = garageStore.addVehicle({
+    // Formater la date pour correspondre au format attendu par l'API
+    const vehicleData = {
       ...form.value,
-      clientId: authStore.user.id
-    })
+      registration_date: new Date(form.value.registration_date).toISOString()
+    }
+    
+    await garageStore.addVehicle(vehicleData)
     
     router.push('/vehicles')
   } catch (error) {
-    formError.value = error.message || 'Une erreur est survenue lors de l\'enregistrement du véhicule'
+    formError.value = error.response?.data?.message || 'Une erreur est survenue lors de l\'enregistrement du véhicule'
   } finally {
     isSubmitting.value = false
   }

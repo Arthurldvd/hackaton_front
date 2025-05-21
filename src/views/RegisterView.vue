@@ -205,21 +205,18 @@ const handleRegister = async () => {
     errorMessage.value = ''
     
     const userData = {
-      firstName: firstName.value,
-      lastName: lastName.value,
+      firstname: firstName.value,
+      lastname: lastName.value,
       email: email.value,
+      password: password.value,
       phone: phone.value,
-      address: address.value,
-      isDriver: isDriver.value,
-      driverFirstName: driverFirstName.value,
-      driverLastName: driverLastName.value,
-      driverPhone: driverPhone.value
+      is_driver: isDriver.value
     }
     
-    await authStore.register(userData, password.value)
+    await authStore.register(userData)
     router.push('/dashboard')
   } catch (error) {
-    errorMessage.value = error?.message || "Une erreur est survenue lors de l'inscription"
+    errorMessage.value = error?.response?.data?.message || "Une erreur est survenue lors de l'inscription"
   } finally {
     isLoading.value = false
   }

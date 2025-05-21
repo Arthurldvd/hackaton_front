@@ -81,9 +81,9 @@
             >
               <span class="sr-only">Ouvrir le menu utilisateur</span>
               <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-medium">
-                {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+                {{ user?.firstName?.charAt(0) || '?' }}{{ user?.lastName?.charAt(0) || '' }}
               </div>
-              <span class="ml-2 text-gray-700">{{ user.firstName }} {{ user.lastName }}</span>
+              <span class="ml-2 text-gray-700">{{ user?.firstName || 'Utilisateur' }} {{ user?.lastName || '' }}</span>
               <svg 
                 class="ml-1 h-5 w-5 text-gray-400" 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -155,12 +155,12 @@
         <div class="flex items-center px-4">
           <div class="flex-shrink-0">
             <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-medium">
-              {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+              {{ user?.firstName?.charAt(0) || '?' }}{{ user?.lastName?.charAt(0) || '' }}
             </div>
           </div>
           <div class="ml-3">
-            <div class="text-base font-medium text-gray-800">{{ user.firstName }} {{ user.lastName }}</div>
-            <div class="text-sm font-medium text-gray-500">{{ user.email }}</div>
+            <div class="text-base font-medium text-gray-800">{{ user?.firstName || 'Utilisateur' }} {{ user?.lastName || '' }}</div>
+            <div class="text-sm font-medium text-gray-500">{{ user?.email }}</div>
           </div>
         </div>
         <div class="mt-3 space-y-1">

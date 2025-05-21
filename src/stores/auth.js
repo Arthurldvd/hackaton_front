@@ -1,23 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { v4 as uuidv4 } from 'uuid'
-
-// Simulation de données utilisateurs pour le développement
-const mockUsers = ref([
-  {
-    id: '1',
-    firstName: 'Jean',
-    lastName: 'Dupont',
-    email: 'jean@test.com',
-    password: 'password123',
-    phone: '0612345678',
-    address: '123 rue de Paris, 75001 Paris',
-    isDriver: true,
-    driverFirstName: '',
-    driverLastName: '',
-    driverPhone: ''
-  }
-])
+import { authService } from '../js/api'
 
 export const useAuthStore = defineStore('auth', () => {
   // État
@@ -30,80 +13,79 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       authError.value = null
       
-      // Simuler une requête API
-      await new Promise(resolve => setTimeout(resolve, 800))
+      const response = await authService.login({ email, password });
       
-      const foundUser = mockUsers.value.find(u => u.email === email)
+      // Stocker le token JWT
+      localStorage.setItem('token', response.data.token);
       
-      if (!foundUser || foundUser.password !== password) {
-        throw new Error('Identifiants incorrects')
-      }
-      
-      // Copie de l'utilisateur sans le mot de passe
-      const { password: _, ...userWithoutPassword } = foundUser
+      // Utiliser les données du formulaire d'inscription au lieu de la réponse API
+      // Cela permet de réutiliser les informations spécifiées pendant l'inscription
+      let userData = {
+        email: email,
+        firstName: email.split('@')[0], // Utiliser une partie de l'email comme nom temporaire
+        lastName: ''
+      };
       
       // Stockage du user dans le state et localStorage
-      user.value = userWithoutPassword
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword))
+      user.value = userData;
+      localStorage.setItem('user', JSON.stringify(userData));
       
-      return userWithoutPassword
+      return userData;
     } catch (error) {
-      authError.value = error.message
-      throw error
+      authError.value = error.response?.data?.message || 'Erreur de connexion';
+      throw error;
     }
   }
   
-  const register = async (userData, password) => {
+  const register = async (userData) => {
     try {
-      authError.value = null
+      authError.value = null;
+      console.log(userData);
       
-      // Simuler une requête API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await authService.register(userData);
       
-      // Vérifier si l'email existe déjà
-      const existingUser = mockUsers.value.find(u => u.email === userData.email)
-      if (existingUser) {
-        throw new Error('Cet email est déjà utilisé')
+      // Si l'inscription renvoie directement un token
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
       }
       
-      // Créer un nouvel utilisateur
+      // Créer un objet utilisateur à partir des données envoyées
       const newUser = {
-        id: uuidv4(),
-        ...userData,
-        password
-      }
-      
-      // Ajouter l'utilisateur à la liste des utilisateurs mock
-      mockUsers.value.push(newUser)
-      
-      // Retourner l'utilisateur sans le mot de passe
-      const { password: _, ...userWithoutPassword } = newUser
+        email: userData.email,
+        firstName: userData.firstname,
+        lastName: userData.lastname
+      };
       
       // Stockage du user dans le state et localStorage
-      user.value = userWithoutPassword
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword))
+      user.value = newUser;
+      localStorage.setItem('user', JSON.stringify(newUser));
       
-      return userWithoutPassword
+      return newUser;
     } catch (error) {
-      authError.value = error.message
-      throw error
+      authError.value = error.response?.data?.message || 'Erreur lors de l\'inscription';
+      throw error;
     }
   }
   
   const logout = () => {
-    user.value = null
-    localStorage.removeItem('user')
+    user.value = null;
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   }
   
   const checkAuth = () => {
-    const savedUser = localStorage.getItem('user')
-    if (savedUser) {
-      user.value = JSON.parse(savedUser)
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+      user.value = JSON.parse(savedUser);
+    } else {
+      logout(); // Si le token n'existe pas mais que l'utilisateur est stocké
     }
   }
   
   // Initialisation - vérifier si l'utilisateur est déjà connecté
-  checkAuth()
+  checkAuth();
   
   return {
     user,

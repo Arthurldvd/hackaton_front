@@ -88,10 +88,10 @@ const handleLogin = async () => {
     isLoading.value = true
     errorMessage.value = ''
     
-    await authStore.login(email.value, password.value, rememberMe.value)
+    await authStore.login(email.value, password.value)
     router.push('/dashboard')
   } catch (error) {
-    errorMessage.value = error?.message || "Une erreur est survenue lors de la connexion"
+    errorMessage.value = error?.response?.data?.message || "Une erreur est survenue lors de la connexion"
   } finally {
     isLoading.value = false
   }

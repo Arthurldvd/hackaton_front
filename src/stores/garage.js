@@ -1,267 +1,224 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+import { vehicleService, appointmentService, garageService, operationService, categoryService } from '../js/api'
 
 export const useGarageStore = defineStore('garage', () => {
-  const vehicles = ref([
-    {
-      id: '1',
-      clientId: '1',
-      brand: 'Renault',
-      model: 'Clio',
-      licensePlate: 'AB-123-CD',
-      vin: 'VF1RFA00066123456',
-      registrationDate: '2018-05-12',
-      mileage: 75000
-    },
-    {
-      id: '2',
-      clientId: '1',
-      brand: 'Peugeot',
-      model: '308',
-      licensePlate: 'EF-456-GH',
-      vin: 'VF3LCRFJOBS123456',
-      registrationDate: '2020-11-03',
-      mileage: 25000
-    }
-  ])
+  // État
+  const vehicles = ref([])
+  const garages = ref([])
+  const operationCategories = ref([])
+  const operations = ref([])
+  const appointments = ref([])
+  const loading = ref(false)
+  const error = ref(null)
   
-  const garages = ref([
-    {
-      id: '1',
-      name: 'Garage Central',
-      city: 'Paris',
-      address: '15 rue de la Paix',
-      zipcode: '75001',
-      latitude: 48.8667,
-      longitude: 2.3333
-    },
-    {
-      id: '2',
-      name: 'Auto Service Plus',
-      city: 'Lyon',
-      address: '27 avenue Jean Jaurès',
-      zipcode: '69007',
-      latitude: 45.7485,
-      longitude: 4.8467
-    },
-    {
-      id: '3',
-      name: 'Mécanique Express',
-      city: 'Marseille',
-      address: '42 boulevard du Prado',
-      zipcode: '13008',
-      latitude: 43.2804,
-      longitude: 5.3806
+  // Actions pour les véhicules
+  const fetchVehicles = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await vehicleService.getAll();
+      vehicles.value = response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors du chargement des véhicules';
+      console.error(error.value);
+    } finally {
+      loading.value = false;
     }
-  ])
-  
-  const operationCategories = ref([
-    {
-      id: '1',
-      name: 'Entretien régulier'
-    },
-    {
-      id: '2',
-      name: 'Réparation mécanique'
-    },
-    {
-      id: '3',
-      name: 'Carrosserie'
-    },
-    {
-      id: '4',
-      name: 'Pneumatiques'
+  };
+
+  // Actions pour les garages
+  const fetchGarages = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await garageService.getAll();
+      
+      // Utiliser response.data.garages si la structure est imbriquée
+      if (response.data && response.data.garages && Array.isArray(response.data.garages)) {
+        garages.value = response.data.garages;
+      } else if (Array.isArray(response.data)) {
+        garages.value = response.data;
+      } else {
+        garages.value = [];
+      }
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors du chargement des garages';
+      console.error(err);
+      garages.value = [];
+    } finally {
+      loading.value = false;
     }
-  ])
-  
-  const operations = ref([
-    {
-      id: '1',
-      categoryId: '1',
-      name: 'Vidange + filtres',
-      additionalHelp: 'Inclut vidange huile, remplacement filtre huile et filtre habitacle',
-      additionalComment: 'Recommandé tous les 15 000 km ou 1 an',
-      timeUnit: 60, 
-      price: 129.99
-    },
-    {
-      id: '2',
-      categoryId: '1',
-      name: 'Révision complète',
-      additionalHelp: 'Contrôle général du véhicule + vidange + filtres',
-      additionalComment: 'Recommandé tous les 30 000 km ou 2 ans',
-      timeUnit: 120,
-      price: 249.99
-    },
-    {
-      id: '3',
-      categoryId: '2',
-      name: 'Remplacement plaquettes de frein',
-      additionalHelp: 'Changement des plaquettes avant ou arrière',
-      additionalComment: 'Selon usure, généralement tous les 30 000 à 40 000 km',
-      timeUnit: 90,
-      price: 179.99
-    },
-    {
-      id: '4',
-      categoryId: '2',
-      name: 'Remplacement courroie de distribution',
-      additionalHelp: 'Inclut courroie, galets et pompe à eau',
-      additionalComment: 'À effectuer selon préconisation constructeur',
-      timeUnit: 240,
-      price: 499.99
-    },
-    {
-      id: '5',
-      categoryId: '3',
-      name: 'Réparation de carrosserie',
-      additionalHelp: 'Réparation et peinture de la zone endommagée',
-      additionalComment: 'Sur devis selon l\'étendue des dégâts',
-      timeUnit: 180,
-      price: 399.99
-    },
-    {
-      id: '6',
-      categoryId: '4',
-      name: 'Changement de pneus',
-      additionalHelp: 'Remplacement des pneumatiques par train (2 ou 4)',
-      additionalComment: 'Inclut équilibrage et parallélisme',
-      timeUnit: 60,
-      price: 89.99
+  };
+
+  // Actions pour les catégories d'opérations
+  const fetchCategories = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await categoryService.getAll();
+      
+      if (response.data && response.data.categories && Array.isArray(response.data.categories)) {
+        operationCategories.value = response.data.categories;
+      } else if (Array.isArray(response.data)) {
+        operationCategories.value = response.data;
+      } else {
+        operationCategories.value = [];
+      }
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors du chargement des catégories';
+      console.error(err);
+      operationCategories.value = [];
+    } finally {
+      loading.value = false;
     }
-  ])
-  
-  const appointments = ref([
-    {
-      id: '1',
-      vehicleId: '1',
-      garageId: '1',
-      appointmentDatetime: '2023-05-15T10:00:00',
-      status: 'completed',
-      notes: 'Vidange effectuée',
-      createdAt: '2023-04-30T14:22:05',
-      updatedAt: '2023-05-15T12:15:33'
+  };
+
+  // Actions pour les opérations
+  const fetchOperations = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await operationService.getAll();
+      
+      // Vérifier si la réponse contient un objet avec une propriété "operations"
+      if (response.data && response.data.operations && Array.isArray(response.data.operations)) {
+        operations.value = response.data.operations;
+      } else if (Array.isArray(response.data)) {
+        operations.value = response.data;
+      } else {
+        operations.value = [];
+      }
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors du chargement des opérations';
+      console.error(err);
+      operations.value = [];
+    } finally {
+      loading.value = false;
     }
-  ])
-  
-  const appointmentOperations = ref([
-    {
-      appointmentId: '1',
-      operationId: '1'
+  };
+
+  // Actions pour les rendez-vous
+  const fetchAppointments = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await appointmentService.getAll();
+      appointments.value = response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors du chargement des rendez-vous';
+      console.error(error.value);
+    } finally {
+      loading.value = false;
     }
-  ])
+  };
   
+  // Getters
   const getVehiclesByClientId = computed(() => {
-    return (clientId) => vehicles.value.filter(vehicle => vehicle.clientId === clientId)
-  })
+    return () => vehicles.value; // Tous les véhicules appartiennent à l'utilisateur connecté
+  });
   
   const getOperationsByCategory = computed(() => {
-    return (categoryId) => operations.value.filter(operation => operation.categoryId === categoryId)
-  })
+    return (categoryId) => operations.value.filter(operation => operation.category === categoryId);
+  });
   
   const getAppointmentsByVehicleId = computed(() => {
-    return (vehicleId) => appointments.value.filter(appointment => appointment.vehicleId === vehicleId)
-  })
+    return (vehicleId) => appointments.value.filter(appointment => appointment.vehicule_id === vehicleId);
+  });
   
-  const getOperationsByAppointmentId = computed(() => {
-    return (appointmentId) => {
-      const operationIds = appointmentOperations.value
-        .filter(ao => ao.appointmentId === appointmentId)
-        .map(ao => ao.operationId)
+  // Actions
+  const addVehicle = async (vehicleData) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await vehicleService.create(vehicleData);
+      // Mettre à jour la liste des véhicules
+      await fetchVehicles();
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors de l\'ajout du véhicule';
+      console.error(error.value);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+  
+  const updateVehicle = async (id, vehicleData) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await vehicleService.update(id, vehicleData);
+      // Mettre à jour la liste des véhicules
+      await fetchVehicles();
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors de la mise à jour du véhicule';
+      console.error(error.value);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+  
+  const createAppointment = async (appointmentData) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await appointmentService.create(appointmentData);
+      // Mettre à jour la liste des rendez-vous
+      await fetchAppointments();
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors de la création du rendez-vous';
+      console.error(error.value);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+  
+  const generateTimeSlots = async (garageId, date, selectedOperations) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      // Appel à l'API pour obtenir les créneaux disponibles pour le garage sélectionné
+      const response = await appointmentService.getAvailabilities(garageId, date);
       
-      return operations.value.filter(operation => operationIds.includes(operation.id))
-    }
-  })
-  
-  const addVehicle = (vehicleData) => {
-    const newVehicle = {
-      id: uuidv4(),
-      ...vehicleData
-    }
-    vehicles.value.push(newVehicle)
-    return newVehicle
-  }
-  
-  const updateVehicle = (id, vehicleData) => {
-    const index = vehicles.value.findIndex(v => v.id === id)
-    if (index !== -1) {
-      vehicles.value[index] = { ...vehicles.value[index], ...vehicleData }
-      return vehicles.value[index]
-    }
-    return null
-  }
-  
-  const createAppointment = (appointmentData, operationIds) => {
-    const newAppointment = {
-      id: uuidv4(),
-      ...appointmentData,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-    
-    appointments.value.push(newAppointment)
-    
-    operationIds.forEach(operationId => {
-      appointmentOperations.value.push({
-        appointmentId: newAppointment.id,
-        operationId
-      })
-    })
-    
-    return newAppointment
-  }
-  
-  const updateAppointmentStatus = (id, status) => {
-    const index = appointments.value.findIndex(a => a.id === id)
-    if (index !== -1) {
-      appointments.value[index].status = status
-      appointments.value[index].updatedAt = new Date().toISOString()
-      return appointments.value[index]
-    }
-    return null
-  }
-  
-  const generateTimeSlots = (garageId, date, operations) => {
-    const slots = []
-    
-    const totalDuration = operations.reduce((sum, opId) => {
-      const operation = operations.value.find(op => op.id === opId)
-      return sum + (operation ? operation.timeUnit : 0)
-    }, 0)
-    
-    const openingHour = 8
-    const closingHour = 18
-    
-    const selectedDate = new Date(date)
-    
-    for (let hour = openingHour; hour < closingHour; hour++) {
-      for (let minutes = 0; minutes < 60; minutes += 30) {
-        const startTime = new Date(selectedDate)
-        startTime.setHours(hour, minutes, 0)
-        
-        const endTime = new Date(startTime)
-        endTime.setMinutes(endTime.getMinutes() + totalDuration)
-        
-        if (endTime.getHours() < closingHour || 
-            (endTime.getHours() === closingHour && endTime.getMinutes() === 0)) {
-          
-          const isAvailable = Math.random() > 0.3 
-          
-          if (isAvailable) {
-            slots.push({
-              start: startTime.toISOString(),
-              end: endTime.toISOString(),
-              duration: totalDuration
-            })
-          }
-        }
+      // Gérer les différents formats possibles de réponse
+      if (response.data && response.data.availabilities && Array.isArray(response.data.availabilities)) {
+        return response.data.availabilities;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data) {
+        // Si la réponse n'est pas un tableau mais contient des données, la retourner directement
+        return response.data;
       }
+      
+      return [];
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur de chargement des créneaux';
+      console.error(err);
+      throw err;
+    } finally {
+      loading.value = false;
     }
-    
-    return slots
-  }
+  };
+  
+  // Initialisation - charger les données au démarrage du store
+  const initializeStore = async () => {
+    try {
+      await Promise.all([
+        fetchVehicles(),
+        fetchGarages(),
+        fetchCategories(),
+        fetchOperations()
+      ]);
+    } catch (err) {
+      console.error('Erreur lors de l\'initialisation du store:', err);
+    }
+  };
   
   return {
     vehicles,
@@ -269,17 +226,23 @@ export const useGarageStore = defineStore('garage', () => {
     operationCategories,
     operations,
     appointments,
-    appointmentOperations,
+    loading,
+    error,
     
     getVehiclesByClientId,
     getOperationsByCategory,
     getAppointmentsByVehicleId,
-    getOperationsByAppointmentId,
+    
+    fetchVehicles,
+    fetchGarages,
+    fetchCategories,
+    fetchOperations,
+    fetchAppointments,
     
     addVehicle,
     updateVehicle,
     createAppointment,
-    updateAppointmentStatus,
-    generateTimeSlots
+    generateTimeSlots,
+    initializeStore
   }
 }) 

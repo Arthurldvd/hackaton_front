@@ -139,23 +139,35 @@ const vehicleAppointments = computed(() => {
 })
 
 const formatDate = (dateString, withTime = false) => {
-  const date = new Date(dateString)
+  if (!dateString) return 'Non renseignée';
   
-  if (withTime) {
+  try {
+    const date = new Date(dateString);
+    
+    // Vérifier si la date est valide
+    if (isNaN(date.getTime())) {
+      return 'Date invalide';
+    }
+    
+    if (withTime) {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    }
+    
     return new Intl.DateTimeFormat('fr-FR', {
       day: 'numeric',
       month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date)
+      year: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error('Erreur de formatage de date:', error);
+    return 'Date invalide';
   }
-  
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
 }
 
 const getGarageName = (garageId) => {

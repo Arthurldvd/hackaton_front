@@ -4,7 +4,7 @@
     <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 mb-8">
       <div class="flex flex-col md:flex-row justify-between">
         <div class="text-white mb-4 md:mb-0">
-          <h1 class="text-2xl font-bold">Bonjour, {{ user.firstName }} 👋</h1>
+          <h1 class="text-2xl font-bold">Bonjour, {{ user.firstName || 'utilisateur' }} 👋</h1>
           <p class="text-indigo-100 mt-1">Bienvenue sur votre espace personnel</p>
         </div>
         <div class="flex space-x-4">
@@ -34,13 +34,17 @@
           <CountBadge :count="vehicles.length" color="white" class="bg-indigo-600" />
         </div>
         
-        <div class="p-4">
-          <ul v-if="vehicles.length > 0" class="divide-y divide-gray-200">
+        <div class="p-4" :class="{ 'min-h-[200px]': true }">
+          <div v-if="garageStore.loading" class="flex justify-center items-center h-full py-4">
+            <span class="text-gray-500">Chargement...</span>
+          </div>
+          
+          <ul v-else-if="vehicles.length > 0" class="divide-y divide-gray-200">
             <li v-for="vehicle in vehicles" :key="vehicle.id" class="py-3 hover:bg-gray-50 rounded transition-colors">
               <router-link :to="`/vehicles/${vehicle.id}`" class="flex justify-between items-center">
                 <div>
                   <p class="font-medium text-gray-800">{{ vehicle.brand }} {{ vehicle.model }}</p>
-                  <p class="text-sm text-gray-500">{{ vehicle.licensePlate }}</p>
+                  <p class="text-sm text-gray-500">{{ vehicle.license_plate }}</p>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -74,15 +78,19 @@
           <CountBadge :count="pendingAppointments.length" color="white" class="bg-emerald-600" />
         </div>
         
-        <div class="p-4">
-          <ul v-if="pendingAppointments.length > 0" class="divide-y divide-gray-200">
+        <div class="p-4" :class="{ 'min-h-[200px]': true }">
+          <div v-if="garageStore.loading" class="flex justify-center items-center h-full py-4">
+            <span class="text-gray-500">Chargement...</span>
+          </div>
+          
+          <ul v-else-if="pendingAppointments.length > 0" class="divide-y divide-gray-200">
             <li v-for="appointment in pendingAppointments" :key="appointment.id" class="py-3 hover:bg-gray-50 rounded transition-colors">
               <router-link :to="`/appointments/${appointment.id}`" class="block">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="font-medium text-gray-800">{{ formatDate(appointment.appointmentDatetime) }}</p>
-                    <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicleId) }}</p>
-                    <p class="text-sm text-gray-500">{{ getGarageName(appointment.garageId) }}</p>
+                    <p class="font-medium text-gray-800">{{ formatDate(appointment.date) }}</p>
+                    <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicule_id) }}</p>
+                    <p class="text-sm text-gray-500">{{ getGarageName(appointment.garage_id) }}</p>
                   </div>
                   <div class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full">
                     À venir
@@ -116,15 +124,19 @@
           </h2>
         </div>
         
-        <div class="p-4">
-          <ul v-if="completedAppointments.length > 0" class="divide-y divide-gray-200">
+        <div class="p-4" :class="{ 'min-h-[200px]': true }">
+          <div v-if="garageStore.loading" class="flex justify-center items-center h-full py-4">
+            <span class="text-gray-500">Chargement...</span>
+          </div>
+          
+          <ul v-else-if="completedAppointments.length > 0" class="divide-y divide-gray-200">
             <li v-for="appointment in completedAppointments" :key="appointment.id" class="py-3 hover:bg-gray-50 rounded transition-colors">
               <router-link :to="`/appointments/${appointment.id}`" class="block">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="font-medium text-gray-800">{{ formatDate(appointment.appointmentDatetime) }}</p>
-                    <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicleId) }}</p>
-                    <p class="text-sm text-gray-500">{{ getGarageName(appointment.garageId) }}</p>
+                    <p class="font-medium text-gray-800">{{ formatDate(appointment.date) }}</p>
+                    <p class="text-sm text-gray-500">{{ getVehicleName(appointment.vehicule_id) }}</p>
+                    <p class="text-sm text-gray-500">{{ getGarageName(appointment.garage_id) }}</p>
                   </div>
                   <div class="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full">
                     Terminé
@@ -152,25 +164,27 @@
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-800 flex items-center">
-          
           Garages à proximité
         </h2>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="garage in garages.slice(0, 3)" :key="garage.id" 
+      <div v-if="garageStore.loading" class="flex justify-center items-center py-8">
+        <span class="text-gray-500">Chargement des garages...</span>
+      </div>
+      
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="garage in Array.isArray(garages) ? garages.slice(0, 3) : []" :key="garage.id" 
              class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1 overflow-hidden border border-gray-100">
           <div class="p-5">
             <h3 class="font-semibold text-lg text-gray-800 mb-2">{{ garage.name }}</h3>
             <div class="text-sm text-gray-600 mb-4">
               <p>{{ garage.address }}</p>
-              <p>{{ garage.postal_code }} {{ garage.city }}</p>
+              <p>{{ garage.zipcode }} {{ garage.city }}</p>
             </div>
             
             <div class="flex justify-between items-center">
               <div class="flex space-x-2">
                 <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Ouvert</span>
-                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">4.5 ★</span>
               </div>
               
               <router-link :to="`/appointment?garageId=${garage.id}`" 
@@ -191,45 +205,41 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import client from '@/js/client'
+import { useGarageStore } from '../stores/garage'
 
 import PageLayout from '../components/PageLayout.vue'
 import CountBadge from '../components/CountBadge.vue'
 import EmptyState from '../components/EmptyState.vue'
 
 const authStore = useAuthStore()
+const garageStore = useGarageStore()
 const user = computed(() => authStore.user)
-
-const garages = ref([])
 
 onMounted(async () => {
   try {
-    const response = await client.get('/garages')
-    garages.value = response.garages || []
+    // Initialiser le store pour charger les données
+    await garageStore.initializeStore()
+    await garageStore.fetchAppointments()
   } catch (error) {
-    console.error('Erreur lors du chargement des garages:', error.message)
+    console.error('Erreur lors du chargement des données:', error)
   }
 })
 
-const vehicles = computed(() => {
-  return []
-})
-
-const appointments = computed(() => {
-  return vehicles.value.flatMap(vehicle => [])
-})
+const garages = computed(() => garageStore.garages)
+const vehicles = computed(() => garageStore.vehicles)
+const appointments = computed(() => garageStore.appointments)
 
 const pendingAppointments = computed(() => {
   return appointments.value
-    .filter(appointment => ['pending', 'confirmed'].includes(appointment.status))
-    .sort((a, b) => new Date(a.appointmentDatetime) - new Date(b.appointmentDatetime))
+    .filter(appointment => ['scheduled', 'confirmed'].includes(appointment.status))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 3)
 })
 
 const completedAppointments = computed(() => {
   return appointments.value
     .filter(appointment => appointment.status === 'completed')
-    .sort((a, b) => new Date(b.appointmentDatetime) - new Date(a.appointmentDatetime))
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 3)
 })
 
@@ -244,7 +254,11 @@ const formatDate = (dateString) => {
   }).format(date)
 }
 
-const getVehicleName = (vehicleId) => 'Véhicule inconnu'
+const getVehicleName = (vehicleId) => {
+  const vehicle = vehicles.value.find(v => v.id === vehicleId)
+  return vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Véhicule inconnu'
+}
+
 const getGarageName = (garageId) => {
   const garage = garages.value.find(g => g.id === garageId)
   return garage ? garage.name : 'Garage inconnu'

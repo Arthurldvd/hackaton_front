@@ -78,11 +78,24 @@ const vehicles = computed(() => {
 })
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric'
-  }).format(date)
+  if (!dateString) return 'Non renseignée';
+  
+  try {
+    const date = new Date(dateString);
+    
+    // Vérifier si la date est valide
+    if (isNaN(date.getTime())) {
+      return 'Date invalide';
+    }
+    
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error('Erreur de formatage de date:', error);
+    return 'Date invalide';
+  }
 }
 </script> 
