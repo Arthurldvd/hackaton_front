@@ -389,8 +389,7 @@ const authStore = useAuthStore()
 const garageStore = useGarageStore()
 const user = computed(() => authStore.user)
 
-// Variables pour les opérations à venir
-const vehicleOperations = ref({}) // Opérations par véhicule
+const vehicleOperations = ref({})
 const operationsLoading = ref(false)
 const selectedVehicleFilter = ref('all')
 const operationSortBy = ref('date')
@@ -398,7 +397,6 @@ const operationSortDirection = ref('asc')
 const currentPage = ref(1)
 const itemsPerPage = ref(5)
 
-// Variables pour la géolocalisation
 const userLocation = ref(null)
 const locationLoading = ref(false)
 const locationError = ref(null)
@@ -407,14 +405,11 @@ const nearbyGaragesLoading = ref(false)
 
 onMounted(async () => {
   try {
-    // Initialiser le store pour charger les données
     await garageStore.initializeStore()
     await garageStore.fetchAppointments()
     
-    // Récupérer la position de l'utilisateur
     getLocation()
     
-    // Récupérer les opérations pour chaque véhicule
     fetchAllVehicleOperations()
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)
@@ -451,14 +446,12 @@ const getLocation = () => {
             locationError.value = "Une erreur inconnue s'est produite."
             break
         }
-        // Utiliser les garages par défaut en cas d'erreur
         nearbyGarages.value = Array.isArray(garages.value) ? garages.value.slice(0, 3) : []
       }
     )
   } else {
     locationLoading.value = false
     locationError.value = "La géolocalisation n'est pas prise en charge par votre navigateur."
-    // Utiliser les garages par défaut en cas d'erreur
     nearbyGarages.value = Array.isArray(garages.value) ? garages.value.slice(0, 3) : []
   }
 }
@@ -469,55 +462,20 @@ const fetchNearbyGarages = async () => {
   nearbyGaragesLoading.value = true
   
   try {
-    // Pour le moment, utilisons les garages locaux et simulons la distance
-    // Quand l'API sera prête, décommentez le code d'appel API ci-dessous
-    
-    /* 
-    // Code pour appeler l'API - À activer quand l'API sera disponible
-    const response = await fetch(`/api/v1/garages?latitude=${userLocation.value.latitude}&longitude=${userLocation.value.longitude}`)
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`)
-    }
-    
-    const contentType = response.headers.get('content-type')
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error(`Type de contenu non valide: ${contentType}`)
-    }
-    
-    const data = await response.json()
-    
-    if (!Array.isArray(data)) {
-      throw new Error('La réponse n\'est pas un tableau')
-    }
-    
-    // Tri et sélection des 3 premiers garages
-    const sortedGarages = data.sort((a, b) => 
-      (a.distance || Infinity) - (b.distance || Infinity)
-    )
-    
-    nearbyGarages.value = sortedGarages.slice(0, 3)
-    */
-    
-    // Utiliser les garages locaux et calculer la distance pour chacun
     if (!Array.isArray(garages.value) || garages.value.length === 0) {
       nearbyGarages.value = []
       return
     }
     
-    // On simule des coordonnées pour les garages qui n'en ont pas
     const garagesWithCoordinates = garages.value.map(garage => {
-      // Si le garage a déjà des coordonnées, on les utilise
       if (garage.latitude && garage.longitude) {
         return garage
       }
       
-      // Sinon, on génère des coordonnées proches de l'utilisateur (rayon de 10km)
-      const radius = 10 // km
+      const radius = 10 
       const angle = Math.random() * 2 * Math.PI
       const distance = Math.random() * radius
       
-      // Conversion approximative des degrés en km
       const latOffset = distance * Math.cos(angle) / 111.32
       const lonOffset = distance * Math.sin(angle) / (111.32 * Math.cos(userLocation.value.latitude * Math.PI / 180))
       
@@ -528,7 +486,6 @@ const fetchNearbyGarages = async () => {
       }
     })
     
-    // Calculer la distance pour chaque garage
     const garagesWithDistance = garagesWithCoordinates.map(garage => {
       const distance = calculateDistance(
         userLocation.value.latitude,
@@ -539,24 +496,20 @@ const fetchNearbyGarages = async () => {
       return { ...garage, distance }
     })
     
-    // Trier par distance
     const sortedGarages = garagesWithDistance.sort((a, b) => a.distance - b.distance)
     
-    // Prendre les 3 plus proches
     nearbyGarages.value = sortedGarages.slice(0, 3)
     
   } catch (error) {
     console.error('Erreur lors de la récupération des garages à proximité:', error)
-    // Fallback: utiliser les garages locaux sans calcul de distance
     nearbyGarages.value = Array.isArray(garages.value) ? garages.value.slice(0, 3) : []
   } finally {
     nearbyGaragesLoading.value = false
   }
 }
 
-// Fonction pour calculer la distance entre deux points géographiques (formule de Haversine)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371 // Rayon de la Terre en km
+  const R = 6371 
   const dLat = (lat2 - lat1) * Math.PI / 180
   const dLon = (lon2 - lon1) * Math.PI / 180
   const a = 
@@ -564,7 +517,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
     Math.sin(dLon/2) * Math.sin(dLon/2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  const distance = R * c // Distance en km
+  const distance = R * c 
   return distance
 }
 
@@ -610,7 +563,6 @@ const formatDate = (dateString) => {
   try {
     const date = new Date(dateString);
     
-    // Vérifier si la date est valide
     if (isNaN(date.getTime())) {
       return 'Date invalide';
     }
@@ -633,7 +585,6 @@ const getVehicleName = (vehicleId) => {
     return 'Véhicule non défini';
   }
   
-  // Essayer plusieurs propriétés d'identifiant possibles
   const vehicle = vehicles.value.find(v => {
     return v.id === vehicleId || 
            v.id === parseInt(vehicleId) || 
@@ -653,7 +604,6 @@ const getGarageName = (garageId) => {
     return 'Garage non défini';
   }
   
-  // Essayer plusieurs propriétés d'identifiant possibles
   const garage = garages.value.find(g => {
     return g.id === garageId || 
            g.id === parseInt(garageId) || 
@@ -684,7 +634,6 @@ const downloadPdf = async (appointmentId) => {
   }
 };
 
-// Fonction pour récupérer les opérations pour tous les véhicules
 const fetchAllVehicleOperations = async () => {
   if (!Array.isArray(vehicles.value) || vehicles.value.length === 0) {
     return
@@ -703,13 +652,10 @@ const fetchAllVehicleOperations = async () => {
   }
 }
 
-// Fonction pour récupérer les opérations d'un véhicule
 const fetchVehicleOperations = async (vehicleId) => {
   try {
-    // Essayer d'abord avec l'URL principale
     const response = await vehicleService.getOperations(vehicleId)
     if (response.data && response.data.operations) {
-      // Ajouter l'ID du véhicule à chaque opération
       const operationsWithVehicleId = response.data.operations.map(op => ({
         ...op,
         vehicleId
@@ -719,7 +665,6 @@ const fetchVehicleOperations = async (vehicleId) => {
   } catch (error) {
     console.error(`Erreur lors de la récupération des opérations pour le véhicule ${vehicleId}:`, error)
     
-    // Essayer avec les URLs alternatives
     try {
       const response = await vehicleService.getOperationsAlt1(vehicleId)
       if (response.data && response.data.operations) {
@@ -740,14 +685,12 @@ const fetchVehicleOperations = async (vehicleId) => {
           vehicleOperations.value[vehicleId] = operationsWithVehicleId
         }
       } catch (error) {
-        // Si toutes les tentatives échouent, définir un tableau vide
         vehicleOperations.value[vehicleId] = []
       }
     }
   }
 }
 
-// Récupérer toutes les opérations à venir
 const allUpcomingOperations = computed(() => {
   const allOperations = []
   for (const vehicleId in vehicleOperations.value) {
@@ -758,16 +701,13 @@ const allUpcomingOperations = computed(() => {
   return allOperations
 })
 
-// Filtrer et trier les opérations
 const filteredAndSortedOperations = computed(() => {
   let operations = [...allUpcomingOperations.value]
   
-  // Filtrer par véhicule si nécessaire
   if (selectedVehicleFilter.value !== 'all') {
     operations = operations.filter(op => op.vehicleId === selectedVehicleFilter.value)
   }
   
-  // Trier les opérations
   if (operationSortBy.value === 'date') {
     operations.sort((a, b) => {
       const valueA = convertToCommonUnit(a.next_in_value, a.next_in_unit)
@@ -785,18 +725,15 @@ const filteredAndSortedOperations = computed(() => {
   return operations
 })
 
-// Calculer les opérations pour la page courante
 const paginatedOperations = computed(() => {
   const startIndex = (currentPage.value - 1) * itemsPerPage.value
   return filteredAndSortedOperations.value.slice(startIndex, startIndex + itemsPerPage.value)
 })
 
-// Calculer le nombre total de pages
 const totalPages = computed(() => {
   return Math.ceil(filteredAndSortedOperations.value.length / itemsPerPage.value)
 })
 
-// Fonctions pour la navigation entre les pages
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
@@ -815,7 +752,6 @@ const goToNextPage = () => {
   }
 }
 
-// Convertir les différentes unités de temps en jours
 const convertToCommonUnit = (value, unit) => {
   switch(unit) {
     case 'days':
@@ -831,7 +767,6 @@ const convertToCommonUnit = (value, unit) => {
   }
 }
 
-// Formater le délai
 const formatNextIn = (value, unit) => {
   const unitMap = {
     'days': value > 1 ? 'jours' : 'jour',
@@ -843,7 +778,6 @@ const formatNextIn = (value, unit) => {
   return `${value} ${unitMap[unit] || unit}`
 }
 
-// Calculer la date limite
 const getDeadlineDate = (value, unit) => {
   const today = new Date()
   let deadline = new Date(today)
@@ -866,7 +800,6 @@ const getDeadlineDate = (value, unit) => {
   return formatDate(deadline)
 }
 
-// Obtenir les classes CSS pour la criticité
 const getCriticalityClasses = (criticality) => {
   if (criticality >= 1 && criticality <= 3) {
     return 'bg-green-100 text-green-800'
@@ -877,14 +810,12 @@ const getCriticalityClasses = (criticality) => {
   }
 }
 
-// Formater une date sans l'heure
 const formatDateWithoutTime = (dateObj) => {
   if (!dateObj) {
     return 'Date non définie';
   }
   
   try {
-    // Vérifier si la date est valide
     if (isNaN(dateObj.getTime())) {
       return 'Date invalide';
     }

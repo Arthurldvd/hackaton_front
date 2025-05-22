@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { vehicleService, appointmentService, garageService, operationService, categoryService } from '../js/api'
 
 export const useGarageStore = defineStore('garage', () => {
-  // État
   const vehicles = ref([])
   const garages = ref([])
   const operationCategories = ref([])
@@ -13,7 +12,6 @@ export const useGarageStore = defineStore('garage', () => {
   const loading = ref(false)
   const error = ref(null)
   
-  // Actions pour les véhicules
   const fetchVehicles = async () => {
     loading.value = true;
     error.value = null;
@@ -28,14 +26,12 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
 
-  // Actions pour les garages
   const fetchGarages = async () => {
     loading.value = true;
     error.value = null;
     try {
       const response = await garageService.getAll();
       
-      // Utiliser response.data.garages si la structure est imbriquée
       if (response.data && response.data.garages && Array.isArray(response.data.garages)) {
         garages.value = response.data.garages;
       } else if (Array.isArray(response.data)) {
@@ -52,7 +48,6 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
 
-  // Actions pour les catégories d'opérations
   const fetchCategories = async () => {
     loading.value = true;
     error.value = null;
@@ -75,14 +70,12 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
 
-  // Actions pour les opérations
   const fetchOperations = async () => {
     loading.value = true;
     error.value = null;
     try {
       const response = await operationService.getAll();
       
-      // Vérifier si la réponse contient un objet avec une propriété "operations"
       if (response.data && response.data.operations && Array.isArray(response.data.operations)) {
         operations.value = response.data.operations;
       } else if (Array.isArray(response.data)) {
@@ -99,7 +92,6 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
 
-  // Actions pour les rendez-vous
   const fetchAppointments = async () => {
     loading.value = true;
     error.value = null;
@@ -120,7 +112,6 @@ export const useGarageStore = defineStore('garage', () => {
     try {
       const response = await appointmentService.getAppointmentsByUser();
 
-      // Correction de la structure: si nous avons un tableau de tableaux, on prend le premier niveau
       if (Array.isArray(response.data) && response.data.length > 0 && Array.isArray(response.data[0])) {
         appointments.value = response.data[0];
       } else {
@@ -134,9 +125,8 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
   
-  // Getters
   const getVehiclesByClientId = computed(() => {
-    return () => vehicles.value; // Tous les véhicules appartiennent à l'utilisateur connecté
+    return () => vehicles.value;
   });
   
   const getOperationsByCategory = computed(() => {
@@ -160,13 +150,11 @@ export const useGarageStore = defineStore('garage', () => {
     };
   });
   
-  // Actions
   const addVehicle = async (vehicleData) => {
     loading.value = true;
     error.value = null;
     try {
       const response = await vehicleService.create(vehicleData);
-      // Mettre à jour la liste des véhicules
       await fetchVehicles();
       return response.data;
     } catch (err) {
@@ -183,7 +171,6 @@ export const useGarageStore = defineStore('garage', () => {
     error.value = null;
     try {
       const response = await vehicleService.update(id, vehicleData);
-      // Mettre à jour la liste des véhicules
       await fetchVehicles();
       return response.data;
     } catch (err) {
@@ -200,7 +187,6 @@ export const useGarageStore = defineStore('garage', () => {
     error.value = null;
     try {
       const response = await appointmentService.create(appointmentData);
-      // Mettre à jour la liste des rendez-vous
       await fetchAppointments();
       return response.data;
     } catch (err) {
@@ -216,16 +202,13 @@ export const useGarageStore = defineStore('garage', () => {
     loading.value = true;
     error.value = null;
     try {
-      // Appel à l'API pour obtenir les créneaux disponibles pour le garage sélectionné
       const response = await appointmentService.getAvailabilities(garageId, date);
       
-      // Gérer les différents formats possibles de réponse
       if (response.data && response.data.availabilities && Array.isArray(response.data.availabilities)) {
         return response.data.availabilities;
       } else if (Array.isArray(response.data)) {
         return response.data;
       } else if (response.data) {
-        // Si la réponse n'est pas un tableau mais contient des données, la retourner directement
         return response.data;
       }
       
@@ -239,7 +222,6 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
   
-  // Initialisation - charger les données au démarrage du store
   const initializeStore = async () => {
     try {
       await Promise.all([

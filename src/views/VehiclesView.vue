@@ -83,7 +83,6 @@ const formatDate = (dateString) => {
   try {
     const date = new Date(dateString);
     
-    // Vérifier si la date est valide
     if (isNaN(date.getTime())) {
       return 'Date invalide';
     }

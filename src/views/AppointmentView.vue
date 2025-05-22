@@ -444,16 +444,14 @@ const garages = ref([])
 const filteredGarages = ref([])
 const garageSearchQuery = ref('')
 const operationCategories = ref([])
-const operationCache = ref({}) // Ajout de cette ligne pour résoudre l'erreur
+const operationCache = ref({})
 
-// Disponibilités des rendez-vous
 const availableDates = ref([])
 const selectedDate = ref('')
 const isLoadingTimeSlots = ref(false)
 
-// Pagination pour les garages
 const currentPage = ref(1)
-const pageSize = ref(6) // Nombre de garages par page
+const pageSize = ref(6)
 const totalPages = computed(() => Math.ceil(filteredGarages.value.length / pageSize.value))
 const displayedGarages = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -461,19 +459,16 @@ const displayedGarages = computed(() => {
   return filteredGarages.value.slice(start, end)
 })
 
-// Tri des créneaux horaires
 const sortOrder = ref('asc')
 const filteredTimeSlots = computed(() => {
   if (!availableTimeSlots.value || availableTimeSlots.value.length === 0) return [];
   
-  // Filtrer les créneaux pour la date sélectionnée
   const slotsForDate = availableTimeSlots.value.filter(slot => {
     if (!slot.start) return false;
     const slotDate = new Date(slot.start).toISOString().split('T')[0];
     return slotDate === selectedDate.value;
   });
   
-  // Trier les créneaux par heure
   return [...slotsForDate].sort((a, b) => {
     if (!a.start || !b.start) return 0;
     const timeA = new Date(a.start).getHours() * 60 + new Date(a.start).getMinutes();
@@ -529,16 +524,14 @@ const minDate = computed(() => {
 
 onMounted(async () => {
   try {
-    // Chargement des données nécessaires
     await garageStore.fetchGarages();
-    await garageStore.fetchCategories(); // Récupérer d'abord les catégories
-    await garageStore.fetchOperations(); // Ensuite les opérations
+    await garageStore.fetchCategories();
+    await garageStore.fetchOperations();
     await garageStore.fetchVehicles();
     
     garages.value = garageStore.garages;
     filteredGarages.value = garages.value;
     
-    // Si les garages sont toujours vides après la récupération, on force un rechargement
     if (garages.value.length === 0 && garageStore.garages.length === 0) {
       await garageStore.fetchGarages();
       garages.value = garageStore.garages;
@@ -547,7 +540,6 @@ onMounted(async () => {
     
     operationCategories.value = garageStore.operationCategories;
     
-    // Mettre en cache les opérations pour un accès facile
     garageStore.operations.forEach(op => {
       operationCache.value[op.id] = op;
     });
@@ -564,14 +556,12 @@ onMounted(async () => {
   }
 });
 
-// Récupérer les disponibilités quand on passe à l'étape 3
 watch(() => currentStep.value, async (step) => {
   if (step === 3 && form.value.garageId) {
     await fetchAvailabilities();
   }
 });
 
-// Fonction pour récupérer les disponibilités du garage sélectionné
 const fetchAvailabilities = async () => {
   try {
     isLoadingTimeSlots.value = true;
@@ -582,33 +572,28 @@ const fetchAvailabilities = async () => {
     availableDates.value = [];
     availableTimeSlots.value = [];
     
-    // Récupérer tous les créneaux disponibles pour ce garage
     const response = await garageStore.generateTimeSlots(
       form.value.garageId,
-      null, // On envoie null pour avoir toutes les dates disponibles
+      null,
       form.value.operations
     );
     
-    // Traiter le format de réponse: [{date: "2025-05-21", slots: ["14:00", "08:00"]}, ...]
     const formattedTimeSlots = [];
     
-    // Vérifier si la réponse est un tableau
     if (Array.isArray(response)) {
       response.forEach(dateItem => {
         const dateStr = dateItem.date;
         
-        // Pour chaque slot dans la journée, créer un objet de créneau formaté
         if (Array.isArray(dateItem.slots)) {
           dateItem.slots.forEach(timeStr => {
-            // Créer une date complète à partir de la date et de l'heure
             const [hours, minutes] = timeStr.split(':');
             const dateObj = new Date(dateStr);
             dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
             
             formattedTimeSlots.push({
               start: dateObj.toISOString(),
-              end: new Date(dateObj.getTime() + 60 * 60 * 1000).toISOString(), // +1 heure
-              duration: 60 * 60, // 1 heure en secondes
+              end: new Date(dateObj.getTime() + 60 * 60 * 1000).toISOString(),
+              duration: 60 * 60,
             });
           });
         }
@@ -616,10 +601,8 @@ const fetchAvailabilities = async () => {
       
       availableTimeSlots.value = formattedTimeSlots;
       
-      // Extraire les dates uniques
       availableDates.value = response.map(item => item.date).sort();
       
-      // Sélectionner automatiquement la première date si disponible
       if (availableDates.value.length > 0) {
         selectAvailableDate(availableDates.value[0]);
       }
@@ -633,7 +616,6 @@ const fetchAvailabilities = async () => {
   }
 };
 
-// Fonction pour sélectionner une date disponible
 const selectAvailableDate = (date) => {
   selectedDate.value = date;
   form.value.date = date;
@@ -641,7 +623,6 @@ const selectAvailableDate = (date) => {
 };
 
 const getOperationsByCategory = (categoryId) => {
-  // Utiliser directement le getter du store qui filtre les opérations par catégorie
   return garageStore.operations.filter(op => op.category === categoryId);
 }
 
@@ -660,7 +641,6 @@ const filterGarages = () => {
     });
   }
   
-  // Réinitialiser la pagination à la première page quand on filtre
   currentPage.value = 1;
 }
 

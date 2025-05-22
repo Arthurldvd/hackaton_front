@@ -256,7 +256,6 @@ const fetchVehicleOperations = async () => {
   loadError.value = false
   errorMessage.value = ''
   
-  // Liste des méthodes API à essayer en séquence
   const apiMethods = [
     vehicleService.getOperations,
     vehicleService.getOperationsAlt1,
@@ -270,10 +269,9 @@ const fetchVehicleOperations = async () => {
       const response = await apiMethod(vehicleId)
       vehicleOperations.value = response.data.operations || []
       success = true;
-      break; // Sortie de la boucle si l'appel réussit
+      break;
     } catch (error) {
       console.error('Tentative échouée:', error);
-      // Continuer avec la méthode suivante
     }
   }
   
@@ -315,7 +313,6 @@ const sortedOperations = computed(() => {
 })
 
 const convertToCommonUnit = (value, unit) => {
-  // Convertir en jours pour faciliter la comparaison
   switch(unit) {
     case 'days':
       return value
@@ -379,7 +376,6 @@ const formatDate = (dateString, withTime = false) => {
   try {
     const date = new Date(dateString);
     
-    // Vérifier si la date est valide
     if (isNaN(date.getTime())) {
       return 'Date invalide';
     }

@@ -204,9 +204,8 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     
-    // Formater la date pour correspondre au format attendu par l'API (YYYY-MM-DD)
     const date = new Date(form.value.registration_date)
-    const formattedDate = date.toISOString().split('T')[0] // Obtient uniquement la partie YYYY-MM-DD
+    const formattedDate = date.toISOString().split('T')[0]
     
     const vehicleData = {
       ...form.value,
@@ -225,7 +224,6 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* Animations et transitions */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }

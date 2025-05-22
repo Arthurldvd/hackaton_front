@@ -83,7 +83,6 @@ const appointments = computed(() => {
     }
   }
   
-  // Si nous avons encore une structure imbriquée, prenons le premier niveau
   if (Array.isArray(garageStore.appointments) && 
       garageStore.appointments.length > 0 && 
       Array.isArray(garageStore.appointments[0])) {
@@ -105,11 +104,9 @@ const filteredAppointments = computed(() => {
   }
   
   
-  // Afficher les détails du premier rendez-vous pour comprendre sa structure
   if (result.length > 0) {
     const firstAppointment = result[0];
     
-    // Vérifions si on a des propriétés cachées
     for (const key in firstAppointment) {
     }
   }
@@ -123,7 +120,6 @@ const formatDate = (dateString) => {
   try {
     const date = new Date(dateString);
     
-    // Vérifier si la date est valide
     if (isNaN(date.getTime())) {
       return 'Date invalide';
     }
@@ -144,7 +140,6 @@ const formatDate = (dateString) => {
 const getGarageName = (garageId) => {
   if (!garageId) {
     
-    // Si les rendez-vous ont des objets garage imbriqués, essayons de les utiliser
     const firstAppointment = appointments.value[0];
     if (firstAppointment && firstAppointment.garage) {
       return firstAppointment.garage.name || 'Garage sans nom';
@@ -154,7 +149,6 @@ const getGarageName = (garageId) => {
   }
   
   
-  // Essayez différentes propriétés pour les garages
   const garage = garageStore.garages.find(g => {
     return g.id === garageId || g.id === parseInt(garageId) || g.garage_id === garageId;
   });
@@ -169,7 +163,6 @@ const getGarageName = (garageId) => {
 const getVehicleName = (vehicleId) => {
   if (!vehicleId) {
     
-    // Si les rendez-vous ont des objets vehicule imbriqués, essayons de les utiliser
     const firstAppointment = appointments.value[0];
     if (firstAppointment && firstAppointment.vehicule) {
       return `${firstAppointment.vehicule.brand || ''} ${firstAppointment.vehicule.model || ''}`.trim() || 'Véhicule sans détails';
@@ -179,7 +172,6 @@ const getVehicleName = (vehicleId) => {
   }
   
   
-  // Essayez différentes propriétés pour les véhicules
   const vehicle = garageStore.vehicles.find(v => {
     return v.id === vehicleId || v.id === parseInt(vehicleId) || v.vehicule_id === vehicleId;
   });
@@ -195,19 +187,17 @@ const getOperationsSummary = (appointmentId) => {
   if (!appointmentId) return "Aucune opération";
   
   try {
-    // Chercher le rendez-vous dans la liste
     const appointment = appointments.value.find(a => a.id === appointmentId);
     
-    // Vérifier si le rendez-vous contient directement des opérations
     if (appointment && appointment.operations) {
       
       if (Array.isArray(appointment.operations) && appointment.operations.length > 0) {
         if (appointment.operations.length === 1) {
-          // Si c'est un objet avec un nom
+          
           if (typeof appointment.operations[0] === 'object' && appointment.operations[0].name) {
             return appointment.operations[0].name;
           }
-          // Si c'est juste un ID
+          
           return "1 opération";
         }
         return `${appointment.operations.length} opérations`;
@@ -216,7 +206,6 @@ const getOperationsSummary = (appointmentId) => {
       return "Aucune opération";
     }
     
-    // Vérifier si la fonction existe dans le store
     if (!garageStore.getOperationsByAppointmentId) {
       return "Opérations non disponibles";
     }
@@ -297,7 +286,6 @@ const loadAppointments = async () => {
   isLoading.value = true
   
   try {
-    // Charger toutes les données nécessaires
     await Promise.all([
       garageStore.fetchGarages(),
       garageStore.fetchVehicles(),
@@ -313,7 +301,6 @@ const loadAppointments = async () => {
   }
 }
 
-// Surveiller les rendez-vous pour afficher plus de détails quand ils sont chargés
 watch(appointments, (newAppointments) => {
   
   if (newAppointments && newAppointments.length > 0) {
