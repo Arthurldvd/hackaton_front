@@ -42,7 +42,11 @@ export const vehicleService = {
   getById: (id) => api.get(`/vehicules/${id}`),
   create: (vehicleData) => api.post('/vehicules', vehicleData),
   update: (id, vehicleData) => api.put(`/vehicules/${id}`, vehicleData),
-  delete: (id) => api.delete(`/vehicules/${id}`)
+  delete: (id) => api.delete(`/vehicules/${id}`),
+  getOperations: (id) => api.get(`/vehicules/${id}/operations`),
+  // Alternative URLs à essayer si la première ne fonctionne pas
+  getOperationsAlt1: (id) => api.get(`/vehicles/${id}/operations`),
+  getOperationsAlt2: (id) => api.get(`/operations/vehicle/${id}`)
 };
 
 // Services pour les rendez-vous
