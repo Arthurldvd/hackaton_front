@@ -40,7 +40,6 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData) => {
     try {
       authError.value = null;
-      console.log(userData);
       
       const response = await authService.register(userData);
       

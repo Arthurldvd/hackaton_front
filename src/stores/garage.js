@@ -114,6 +114,26 @@ export const useGarageStore = defineStore('garage', () => {
     }
   };
   
+  const fetchAppointmentsByUser = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await appointmentService.getAppointmentsByUser();
+
+      // Correction de la structure: si nous avons un tableau de tableaux, on prend le premier niveau
+      if (Array.isArray(response.data) && response.data.length > 0 && Array.isArray(response.data[0])) {
+        appointments.value = response.data[0];
+      } else {
+        appointments.value = response.data;
+      }
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Erreur lors du chargement des rendez-vous de l\'utilisateur';
+      console.error(error.value);
+    } finally {
+      loading.value = false;
+    }
+  };
+  
   // Getters
   const getVehiclesByClientId = computed(() => {
     return () => vehicles.value; // Tous les véhicules appartiennent à l'utilisateur connecté
@@ -125,6 +145,19 @@ export const useGarageStore = defineStore('garage', () => {
   
   const getAppointmentsByVehicleId = computed(() => {
     return (vehicleId) => appointments.value.filter(appointment => appointment.vehicule_id === vehicleId);
+  });
+  
+  const getOperationsByAppointmentId = computed(() => {
+    return (appointmentId) => {
+      const appointment = appointments.value.find(a => a.id === appointmentId);
+      if (appointment && appointment.operations && Array.isArray(appointment.operations)) {
+        return appointment.operations.map(operationId => {
+          const operation = operations.value.find(o => o.id === operationId);
+          return operation || { id: operationId, name: 'Opération inconnue' };
+        });
+      }
+      return [];
+    };
   });
   
   // Actions
@@ -213,8 +246,10 @@ export const useGarageStore = defineStore('garage', () => {
         fetchVehicles(),
         fetchGarages(),
         fetchCategories(),
-        fetchOperations()
+        fetchOperations(),
+        fetchAppointmentsByUser()
       ]);
+      
     } catch (err) {
       console.error('Erreur lors de l\'initialisation du store:', err);
     }
@@ -232,12 +267,14 @@ export const useGarageStore = defineStore('garage', () => {
     getVehiclesByClientId,
     getOperationsByCategory,
     getAppointmentsByVehicleId,
+    getOperationsByAppointmentId,
     
     fetchVehicles,
     fetchGarages,
     fetchCategories,
     fetchOperations,
     fetchAppointments,
+    fetchAppointmentsByUser,
     
     addVehicle,
     updateVehicle,

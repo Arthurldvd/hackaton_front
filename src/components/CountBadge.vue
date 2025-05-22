@@ -1,5 +1,5 @@
 <template>
-  <span :class="[`bg-${color}-100 text-${color}-800 py-1 px-3 rounded-full text-sm font-medium`]">
+  <span :class="[`bg-${color}-100 text-white py-1 px-3 rounded-full text-sm font-medium`]">
     {{ count }}
   </span>
 </template>

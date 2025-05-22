@@ -40,18 +40,21 @@ export const authService = {
 export const vehicleService = {
   getAll: () => api.get('/vehicules/'),
   getById: (id) => api.get(`/vehicules/${id}`),
-  create: (vehicleData) => api.post('/vehicules/', vehicleData),
+  create: (vehicleData) => api.post('/vehicules', vehicleData),
   update: (id, vehicleData) => api.put(`/vehicules/${id}`, vehicleData),
   delete: (id) => api.delete(`/vehicules/${id}`)
 };
 
 // Services pour les rendez-vous
 export const appointmentService = {
-  getAll: () => api.get('/appointments'),
-  getById: (id) => api.get(`/appointments/${id}`),
+  getAll: () => api.get('/appointments/user'),
   create: (appointmentData) => api.post('/appointments', appointmentData),
   getAvailabilities: (garageId, date) => api.get(`/appointments/avaibilities`, {
     params: { garage_id: garageId, date: date }
+  }),
+  getAppointmentsByUser: () => api.get('/appointments/user'),
+  getPdf: (appointmentId) => api.get(`/appointments/${appointmentId}/pdf`, {
+    responseType: 'blob'
   }),
 };
 

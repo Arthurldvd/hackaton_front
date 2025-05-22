@@ -80,13 +80,6 @@ const router = createRouter({
       name: 'appointments',
       component: () => import('../views/AppointmentsView.vue'),
       beforeEnter: requireAuth
-    },
-    {
-      path: '/appointments/:id',
-      name: 'appointment-details',
-      component: () => import('../views/AppointmentDetailsView.vue'),
-      beforeEnter: requireAuth,
-      props: true
     }
   ],
 })

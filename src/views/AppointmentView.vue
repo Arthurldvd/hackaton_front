@@ -724,7 +724,7 @@ const submitAppointment = async () => {
     };
     
     const response = await garageStore.createAppointment(appointmentData);
-    router.push(`/appointments/${response.id}`);
+    router.push(`/appointments`);
   } catch (e) {
     errorMessage.value = e.response?.data?.message || 'Erreur lors de la réservation';
   } finally {

@@ -10,23 +10,8 @@
         </ActionButton>
       </router-link>
     </template>
-    
-    <FilterBar>
-      <StatusSelect 
-        v-model="statusFilter"
-        :options="statusOptions"
-      />
       
-      <ActionButton 
-        variant="secondary"
-        @click="loadAppointments"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Actualiser
-      </ActionButton>
-    </FilterBar>
+    
     
     <EmptyState 
       v-if="filteredAppointments.length === 0"
@@ -51,20 +36,13 @@
           v-for="appointment in filteredAppointments" 
           :key="appointment.id"
           :appointment="appointment"
-          :formatted-date="formatDate(appointment.appointmentDatetime)"
-          :garage-name="getGarageName(appointment.garageId)"
-          :vehicle-name="getVehicleName(appointment.vehicleId)"
+          :formatted-date="formatDate(appointment.date)"
+          :garage-name="getGarageNameForAppointment(appointment)"
+          :vehicle-name="getVehicleNameForAppointment(appointment)"
           :operations-summary="getOperationsSummary(appointment.id)"
           :status-text="getStatusText(appointment.status)"
           :status-classes="getStatusClasses(appointment.status)"
         >
-          <template #actions>
-            <router-link :to="`/appointments/${appointment.id}`">
-              <ActionButton variant="secondary">
-                Détails
-              </ActionButton>
-            </router-link>
-          </template>
         </AppointmentItem>
       </ul>
     </div>
@@ -72,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useGarageStore } from '../stores/garage'
 
@@ -98,56 +76,166 @@ const statusOptions = [
 ]
 
 const appointments = computed(() => {
-  const userVehicles = garageStore.getVehiclesByClientId(authStore.user.id)
   
-  return userVehicles.flatMap(vehicle => 
-    garageStore.getAppointmentsByVehicleId(vehicle.id)
-  )
+  if (Array.isArray(garageStore.appointments)) {
+    
+    if (garageStore.appointments.length > 0) {
+    }
+  }
+  
+  // Si nous avons encore une structure imbriquée, prenons le premier niveau
+  if (Array.isArray(garageStore.appointments) && 
+      garageStore.appointments.length > 0 && 
+      Array.isArray(garageStore.appointments[0])) {
+    return garageStore.appointments[0];
+  }
+  
+  return garageStore.appointments;
 })
 
 const filteredAppointments = computed(() => {
+  
+  let result;
   if (statusFilter.value === 'all') {
-    return appointments.value.sort((a, b) => new Date(b.appointmentDatetime) - new Date(a.appointmentDatetime))
+    result = appointments.value.sort((a, b) => new Date(b.date) - new Date(a.date));
+  } else {
+    result = appointments.value
+      .filter(appointment => appointment.status === statusFilter.value)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
   }
   
-  return appointments.value
-    .filter(appointment => appointment.status === statusFilter.value)
-    .sort((a, b) => new Date(b.appointmentDatetime) - new Date(a.appointmentDatetime))
+  
+  // Afficher les détails du premier rendez-vous pour comprendre sa structure
+  if (result.length > 0) {
+    const firstAppointment = result[0];
+    
+    // Vérifions si on a des propriétés cachées
+    for (const key in firstAppointment) {
+    }
+  }
+  
+  return result;
 })
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
+  if (!dateString) return 'Date inconnue';
+  
+  try {
+    const date = new Date(dateString);
+    
+    // Vérifier si la date est valide
+    if (isNaN(date.getTime())) {
+      return 'Date invalide';
+    }
+    
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  } catch (error) {
+    console.error("Erreur de formatage de date:", error, "pour la valeur:", dateString);
+    return 'Erreur de date';
+  }
 }
 
 const getGarageName = (garageId) => {
-  const garage = garageStore.garages.find(g => g.id === garageId)
-  return garage ? garage.name : 'Garage inconnu'
+  if (!garageId) {
+    
+    // Si les rendez-vous ont des objets garage imbriqués, essayons de les utiliser
+    const firstAppointment = appointments.value[0];
+    if (firstAppointment && firstAppointment.garage) {
+      return firstAppointment.garage.name || 'Garage sans nom';
+    }
+    
+    return 'Garage non défini';
+  }
+  
+  
+  // Essayez différentes propriétés pour les garages
+  const garage = garageStore.garages.find(g => {
+    return g.id === garageId || g.id === parseInt(garageId) || g.garage_id === garageId;
+  });
+  
+  if (garage) {
+    return garage.name;
+  } else {
+    return 'Garage inconnu';
+  }
 }
 
 const getVehicleName = (vehicleId) => {
-  const vehicle = garageStore.vehicles.find(v => v.id === vehicleId)
-  return vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Véhicule inconnu'
+  if (!vehicleId) {
+    
+    // Si les rendez-vous ont des objets vehicule imbriqués, essayons de les utiliser
+    const firstAppointment = appointments.value[0];
+    if (firstAppointment && firstAppointment.vehicule) {
+      return `${firstAppointment.vehicule.brand || ''} ${firstAppointment.vehicule.model || ''}`.trim() || 'Véhicule sans détails';
+    }
+    
+    return 'Véhicule non défini';
+  }
+  
+  
+  // Essayez différentes propriétés pour les véhicules
+  const vehicle = garageStore.vehicles.find(v => {
+    return v.id === vehicleId || v.id === parseInt(vehicleId) || v.vehicule_id === vehicleId;
+  });
+  
+  if (vehicle) {
+    return `${vehicle.brand} ${vehicle.model}`;
+  } else {
+    return 'Véhicule inconnu';
+  }
 }
 
 const getOperationsSummary = (appointmentId) => {
-  const operations = garageStore.getOperationsByAppointmentId(appointmentId)
+  if (!appointmentId) return "Aucune opération";
   
-  if (operations.length === 0) {
-    return "Aucune opération"
+  try {
+    // Chercher le rendez-vous dans la liste
+    const appointment = appointments.value.find(a => a.id === appointmentId);
+    
+    // Vérifier si le rendez-vous contient directement des opérations
+    if (appointment && appointment.operations) {
+      
+      if (Array.isArray(appointment.operations) && appointment.operations.length > 0) {
+        if (appointment.operations.length === 1) {
+          // Si c'est un objet avec un nom
+          if (typeof appointment.operations[0] === 'object' && appointment.operations[0].name) {
+            return appointment.operations[0].name;
+          }
+          // Si c'est juste un ID
+          return "1 opération";
+        }
+        return `${appointment.operations.length} opérations`;
+      }
+      
+      return "Aucune opération";
+    }
+    
+    // Vérifier si la fonction existe dans le store
+    if (!garageStore.getOperationsByAppointmentId) {
+      return "Opérations non disponibles";
+    }
+    
+    const operations = garageStore.getOperationsByAppointmentId(appointmentId);
+    
+    if (!operations || operations.length === 0) {
+      return "Aucune opération";
+    }
+    
+    if (operations.length === 1) {
+      return operations[0].name;
+    }
+    
+    return `${operations[0].name} + ${operations.length - 1} autre(s)`;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des opérations:", error);
+    return "Erreur";
   }
-  
-  if (operations.length === 1) {
-    return operations[0].name
-  }
-  
-  return `${operations[0].name} + ${operations.length - 1} autre(s)`
 }
 
 const getStatusText = (status) => {
@@ -188,13 +276,54 @@ const getStatusClasses = (status) => {
   return classesMap[status] || classesMap['pending']
 }
 
-const loadAppointments = () => {
+const getGarageNameForAppointment = (appointment) => {
+
+  if (appointment.garage) {
+    return getGarageName(appointment.garage.id);
+  }
+  return 'Garage non spécifié';
+}
+
+const getVehicleNameForAppointment = (appointment) => {
+ 
+  if (appointment.vehicule) {
+    return getVehicleName(appointment.vehicule.id);
+  }
+  
+  return 'Véhicule non spécifié';
+}
+
+const loadAppointments = async () => {
   isLoading.value = true
   
-  setTimeout(() => {
+  try {
+    // Charger toutes les données nécessaires
+    await Promise.all([
+      garageStore.fetchGarages(),
+      garageStore.fetchVehicles(),
+      garageStore.fetchOperations(),
+      garageStore.fetchAppointmentsByUser()
+    ])
+    
+    
+  } catch (error) {
+    console.error("Erreur lors du chargement des données:", error)
+  } finally {
     isLoading.value = false
-  }, 500)
+  }
 }
+
+// Surveiller les rendez-vous pour afficher plus de détails quand ils sont chargés
+watch(appointments, (newAppointments) => {
+  
+  if (newAppointments && newAppointments.length > 0) {
+    const firstAppointment = newAppointments[0];
+    
+    // Afficher toutes les propriétés du premier rendez-vous
+    for (const key in firstAppointment) {
+    }
+  }
+}, { immediate: true });
 
 onMounted(() => {
   loadAppointments()

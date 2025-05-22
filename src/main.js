@@ -23,6 +23,10 @@ import { useAuthStore } from './stores/auth'
 const authStore = useAuthStore()
 authStore.checkAuth()
 
+// Initialiser les données du garage
+const garageStore = useGarageStore()
+garageStore.initializeStore()
+
 // Configuration du routeur pour protéger les routes nécessitant une authentification
 router.beforeEach((to, from, next) => {
   const publicPages = ['/', '/login', '/register', '/about']
