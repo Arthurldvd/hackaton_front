@@ -6,7 +6,7 @@
 
     <FormError :message="errorMessage" />
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg pb-20">
       <div v-if="currentStep === 0" class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-6">Sélectionner un véhicule</h2>
 
@@ -210,7 +210,7 @@
       </div>
 
       <div v-if="currentStep === 2" class="p-6">
-        <h2 class="text-lg font-medium text-gray-900 mb-6">Sélectionner les opérations</h2>
+        <h2 class="text-lg font-medium text-gray-900 mb-8">Sélectionner les opérations</h2>
 
         <EmptyState
           v-if="!operationCategories || operationCategories.length === 0 || garageStore.operations.length === 0"
@@ -219,47 +219,89 @@
         >
         </EmptyState>
 
-        <div v-else class="mt-4 space-y-6">
-          <OperationCategory
-            v-for="category in operationCategories"
-            :key="category.id"
-            :title="category.name"
-          >
-            <p v-if="getOperationsByCategory(category.id).length === 0" class="text-sm text-gray-500 py-2">
+        <div v-else class="mt-6 space-y-10">
+          <div v-for="category in operationCategories" :key="category.id" class="bg-gray-50 rounded-xl p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900 pb-4 border-b border-gray-200 mb-4">{{ category.name }}</h3>
+            
+            <p v-if="getOperationsByCategory(category.id).length === 0" class="text-sm text-gray-500 py-3 italic">
               Aucune prestation disponible dans cette catégorie
             </p>
-            <OperationItem
-              v-for="operation in getOperationsByCategory(category.id)"
-              :key="operation.id"
-              :input-id="`operation-${operation.id}`"
-              :value="operation.id"
-              v-model="form.operations"
-              :name="operation.name"
-              :formatted-price="formatPrice(operation.price)"
-              :additional-help="operation.additionalHelp"
-              :additional-comment="operation.additionalComment"
-            />
-          </OperationCategory>
+            
+            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div 
+                v-for="operation in getOperationsByCategory(category.id)" 
+                :key="operation.id"
+                class="bg-white rounded-lg p-3 border border-gray-100 hover:border-indigo-200 transition-all duration-200 hover:shadow-md"
+              >
+                <div class="flex items-start space-x-2">
+                  <input
+                    :id="`operation-${operation.id}`"
+                    type="checkbox"
+                    :value="operation.id"
+                    v-model="form.operations"
+                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded mt-1 focus:ring-indigo-500"
+                  />
+                  <div class="flex-1">
+                    <label :for="`operation-${operation.id}`" class="block text-sm font-medium text-gray-900 cursor-pointer">
+                      {{ operation.name }}
+                    </label>
+                    <div class="mt-1 flex justify-between items-center">
+                      <span class="text-sm font-semibold text-indigo-600">{{ formatPrice(operation.price) }}</span>
+                      
+                      <div v-if="operation.additionalHelp || operation.additionalComment" class="text-right">
+                        <span 
+                          v-if="operation.additionalHelp" 
+                          class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          Info
+                        </span>
+                        <span 
+                          v-if="operation.additionalComment" 
+                          class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 ml-1"
+                        >
+                          Note
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div v-if="operation.additionalHelp" class="mt-1.5 text-xs text-gray-600 italic">
+                      {{ operation.additionalHelp }}
+                    </div>
+                    <div v-if="operation.additionalComment" class="mt-1.5 text-xs text-gray-600">
+                      {{ operation.additionalComment }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <SummarySection v-if="form.operations.length > 0" title="Opérations sélectionnées">
-          <SummaryItem
-            v-for="operationId in form.operations"
-            :key="operationId"
-            :label="garageStore.operations.find(op => op.id === operationId)?.name || 'Opération'"
-            :value="formatPrice(parseFloat(garageStore.operations.find(op => op.id === operationId)?.price || 0))"
-          />
-          <SummaryItem
-            label="Total"
-            :value="formatPrice(calculateTotal())"
-            is-total
-          />
+        <SummarySection v-if="form.operations.length > 0" title="Opérations sélectionnées" class="mt-8 bg-indigo-50 rounded-xl p-6">
+          <div class="space-y-3">
+            <SummaryItem
+              v-for="operationId in form.operations"
+              :key="operationId"
+              :label="garageStore.operations.find(op => op.id === operationId)?.name || 'Opération'"
+              :value="formatPrice(parseFloat(garageStore.operations.find(op => op.id === operationId)?.price || 0))"
+              class="py-2"
+            />
+            <div class="border-t border-gray-200 pt-3 mt-3">
+              <SummaryItem
+                label="Total"
+                :value="formatPrice(calculateTotal())"
+                is-total
+                class="font-bold text-lg"
+              />
+            </div>
+          </div>
         </SummarySection>
 
         <StepNavigation
           :next-disabled="form.operations.length === 0"
           @back="goToStep(1)"
           @next="goToStep(3)"
+          class="mt-8"
         />
       </div>
 
@@ -602,8 +644,6 @@ const getOperationsByCategory = (categoryId) => {
   // Utiliser directement le getter du store qui filtre les opérations par catégorie
   return garageStore.operations.filter(op => op.category === categoryId);
 }
-
-
 
 const filterGarages = () => {
   if (!garageSearchQuery.value.trim()) {
